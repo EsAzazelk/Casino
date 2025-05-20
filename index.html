@@ -1,170 +1,268 @@
-import { useState, useEffect } from 'react';
-
-export default function App() {
-  const [balance, setBalance] = useState(100);
-  const [betAmount, setBetAmount] = useState(10);
-  const [selectedNumber, setSelectedNumber] = useState(null);
-  const [result, setResult] = useState(null);
-  const [isSpinning, setIsSpinning] = useState(false);
-  const [message, setMessage] = useState('');
-  const [history, setHistory] = useState([]);
-
-  // Загрузка баланса из localStorage при монтировании компонента
-  useEffect(() => {
-    const savedBalance = localStorage.getItem('rouletteBalance');
-    if (savedBalance) {
-      setBalance(Number(savedBalance));
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Казино с кубиками</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #2e003e; /* Тёмно-фиолетовый фон */
+      color: white;
     }
-  }, []);
 
-  // Сохранение баланса в localStorage при его изменении
-  useEffect(() => {
-    localStorage.setItem('rouletteBalance', balance.toString());
-  }, [balance]);
+    .balance {
+      margin: 20px;
+      font-size: 24px;
+    }
 
-  const handleSpin = () => {
-    if (!selectedNumber) {
-      setMessage('Выберите число для ставки');
+    input[type="number"] {
+      padding: 8px;
+      font-size: 16px;
+      width: 100px;
+      margin-right: 10px;
+      border-radius: 5px;
+      border: none;
+      background-color: #4a005c;
+      color: white;
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #9c27b0; /* Фиолетовая кнопка */
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .result {
+      margin-top: 20px;
+      font-size: 20px;
+    }
+
+    .wheel-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: 50px auto;
+      border: 5px solid #ffffffcc;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+
+    .wheel {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      transform-origin: center;
+      transition: transform 3s ease-out;
+    }
+
+    .dice {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60px;
+      height: 60px;
+      line-height: 60px;
+      font-size: 24px;
+      background-color: #9c27b0; /* Фиолетовые кубики */
+      color: white;
+      border-radius: 10px;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s;
+    }
+
+    .dice.selected {
+      background-color: #e040fb; /* Яркий фиолетовый при выборе */
+    }
+  </style>
+</head>
+<body>
+
+<div class="balance">Баланс: <span id="balance">1000</span></div>
+
+<input type="number" id="betAmount" placeholder="Ставка" min="1" max="10000"/>
+<button onclick="spinWheel()">Крутить!</button>
+
+<div class="result" id="result"></div>
+
+<div class="wheel-container">
+  <div class="wheel" id="wheel"></div>
+</div>
+
+<script>
+  const diceValues = [1, 2, 3, 4, 5, 6];
+  let balance = 1000;
+  let selectedDice = null;
+  const wheel = document.getElementById("wheel");
+  const radius = 120;
+  const centerX = 150;
+  const centerY = 150;
+
+  function createDiceElements() {
+    for (let i = 0; i < diceValues.length; i++) {
+      const angle = (i / diceValues.length) * 2 * Math.PI;
+      const x = centerX + radius * Math.cos(angle);
+      const y = centerY + radius * Math.sin(angle);
+
+      const div = document.createElement("div");
+      div.className = "dice";
+      div.style.left = `${x}px`;
+      div.style.top = `${y}px`;
+      div.textContent = diceValues[i];
+      div.dataset.value = diceValues[i];
+
+      div.onclick = () => {
+        document.querySelectorAll(".dice").forEach(d => d.classList.remove("selected"));
+        div.classList.add("selected");
+        selectedDice = parseInt(div.dataset.value);
+      };
+
+      wheel.appendChild(div);
+    }
+  }
+
+  createDiceElements();
+
+  function spinWheel() {
+    const betInput = document.getElementById("betAmount");
+    const bet = parseInt(betInput.value);
+    const resultDiv = document.getElementById("result");
+
+    if (selectedDice === null) {
+      resultDiv.textContent = "Выберите число для ставки!";
       return;
     }
 
-    if (betAmount <= 0 || betAmount > balance) {
-      setMessage('Некорректная сумма ставки');
+    if (isNaN(bet) || bet <= 0) {
+      resultDiv.textContent = "Введите корректную ставку!";
       return;
     }
 
-    setIsSpinning(true);
-    setMessage('');
+    if (bet > balance) {
+      resultDiv.textContent = "Недостаточно средств!";
+      return;
+    }
 
-    // Имитация анимации вращения
-    const spinInterval = setInterval(() => {
-      setResult(Math.floor(Math.random() * 3) + 1);
-    }, 100);
+    // Случайное выпадение
+    const resultValue = diceValues[Math.floor(Math.random() * diceValues.length)];
+    const index = diceValues.indexOf(resultValue);
+
+    // Вращение колеса
+    const offset = 360 * 5 + ((index / diceValues.length) * 360);
+    wheel.style.transform = `rotate(${offset}deg)`;
 
     setTimeout(() => {
-      clearInterval(spinInterval);
-      
-      // Окончательный результат
-      const finalResult = Math.floor(Math.random() * 3) + 1;
-      setResult(finalResult);
-
-      let newMessage = '';
-      let newBalance = balance;
-
-      if (finalResult === selectedNumber) {
-        const winnings = betAmount * 2; // Коэффициент выигрыша - 2x
-        newBalance += winnings;
-        newMessage = `Поздравляем! Вы выиграли ${winnings}₽. Ваше число: ${selectedNumber}, выпало число: ${finalResult}`;
+      if (resultValue === selectedDice) {
+        const win = bet * 5;
+        balance += win - bet;
+        resultDiv.textContent = `Выпало: ${resultValue}. Победа! Вы выиграли: ${win} 💰`;
       } else {
-        newBalance -= betAmount;
-        newMessage = `К сожалению, вы проиграли ${betAmount}₽. Ваше число: ${selectedNumber}, выпало число: ${finalResult}`;
+        balance -= bet;
+        resultDiv.textContent = `Выпало: ${resultValue}. Не угадали 😢`;
       }
 
-      setMessage(newMessage);
-      setBalance(newBalance);
-      setHistory(prev => [...prev, { result: finalResult, bet: selectedNumber, amount: betAmount, message: newMessage }]);
-      
-      setIsSpinning(false);
-    }, 2000); // Время вращения - 2 секунды
-  };
+      document.getElementById("balance").textContent = balance;
+      selectedDice = null;
+      document.querySelectorAll(".dice").forEach(d => d.classList.remove("selected"));
+      betInput.value = "";
+    }, 3000);
+  }
+</script>
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 text-white p-4 md:p-8">
-      <div className="max-w-md mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-6">Рулетка 1-3</h1>
-        
-        {/* Баланс */}
-        <div className="bg-black bg-opacity-30 p-4 rounded-lg mb-6 text-center">
-          <p className="text-lg">Ваш баланс:</p>
-          <p className="text-3xl font-bold">{balance} ₽</p>
-        </div>
+</body>
+</html><script>
+  const diceValues = [1, 2, 3, 4, 5, 6];
+  let selectedDice = null;
 
-        {/* История игр */}
-        <div className="bg-black bg-opacity-20 p-4 rounded-lg mb-6 max-h-40 overflow-y-auto">
-          <h2 className="text-xl font-semibold mb-2">История:</h2>
-          {history.length === 0 ? (
-            <p className="text-gray-300">История пуста</p>
-          ) : (
-            <ul className="space-y-1">
-              {history.slice(-5).map((item, index) => (
-                <li key={index} className={`text-sm ${item.message.includes('выиграли') ? 'text-green-300' : 'text-red-300'}`}>
-                  {item.message}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+  // Загружаем баланс из localStorage или устанавливаем по умолчанию
+  let balance = parseInt(localStorage.getItem("balance")) || 1000;
+  document.getElementById("balance").textContent = balance;
 
-        {/* Ставка */}
-        <div className="bg-black bg-opacity-20 p-4 rounded-lg mb-6">
-          <label className="block mb-2">Сумма ставки:</label>
-          <input
-            type="number"
-            min="1"
-            max={balance}
-            value={betAmount}
-            onChange={(e) => setBetAmount(Math.min(balance, Math.max(1, parseInt(e.target.value) || 0)))}
-            className="w-full p-2 rounded bg-gray-800 text-white"
-            disabled={isSpinning}
-          />
-          
-          <div className="mt-4">
-            <p>Выберите число:</p>
-            <div className="flex justify-around mt-2">
-              {[1, 2, 3].map(num => (
-                <button
-                  key={num}
-                  onClick={() => setSelectedNumber(num)}
-                  disabled={isSpinning}
-                  className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold ${
-                    selectedNumber === num 
-                      ? 'bg-gradient-to-r from-yellow-400 to-yellow-600 text-black' 
-                      : 'bg-gray-700 hover:bg-gray-600'
-                  }`}
-                >
-                  {num}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+  const wheel = document.getElementById("wheel");
+  const radius = 120;
+  const centerX = 150;
+  const centerY = 150;
 
-        {/* Результат */}
-        {result && (
-          <div className="bg-black bg-opacity-20 p-4 rounded-lg mb-6 text-center animate-pulse">
-            <p className="text-lg">Выпало число:</p>
-            <p className="text-4xl font-bold text-yellow-400">{result}</p>
-          </div>
-        )}
+  function createDiceElements() {
+    for (let i = 0; i < diceValues.length; i++) {
+      const angle = (i / diceValues.length) * 2 * Math.PI;
+      const x = centerX + radius * Math.cos(angle);
+      const y = centerY + radius * Math.sin(angle);
 
-        {/* Сообщение */}
-        {message && (
-          <div className="bg-black bg-opacity-20 p-4 rounded-lg mb-6 text-center">
-            <p>{message}</p>
-          </div>
-        )}
+      const div = document.createElement("div");
+      div.className = "dice";
+      div.style.left = `${x}px`;
+      div.style.top = `${y}px`;
+      div.textContent = diceValues[i];
+      div.dataset.value = diceValues[i];
 
-        {/* Кнопка запуска */}
-        <button
-          onClick={handleSpin}
-          disabled={isSpinning || !selectedNumber || betAmount <= 0 || betAmount > balance}
-          className={`w-full py-3 px-4 rounded-lg font-bold text-lg transition-all transform ${
-            isSpinning 
-              ? 'bg-gray-600 cursor-not-allowed' 
-              : 'bg-gradient-to-r from-yellow-500 to-yellow-700 hover:from-yellow-600 hover:to-yellow-800 active:scale-95'
-          }`}
-        >
-          {isSpinning ? (
-            <span className="flex items-center justify-center">
-              <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Вращается...
-            </span>
-          ) : 'Запустить рулетку'}
-        </button>
-      </div>
-    </div>
-  );
-}
+      div.onclick = () => {
+        document.querySelectorAll(".dice").forEach(d => d.classList.remove("selected"));
+        div.classList.add("selected");
+        selectedDice = parseInt(div.dataset.value);
+      };
+
+      wheel.appendChild(div);
+    }
+  }
+
+  createDiceElements();
+
+  function spinWheel() {
+    const betInput = document.getElementById("betAmount");
+    const bet = parseInt(betInput.value);
+    const resultDiv = document.getElementById("result");
+
+    if (selectedDice === null) {
+      resultDiv.textContent = "Выберите число для ставки!";
+      return;
+    }
+
+    if (isNaN(bet) || bet <= 0) {
+      resultDiv.textContent = "Введите корректную ставку!";
+      return;
+    }
+
+    if (bet > balance) {
+      resultDiv.textContent = "Недостаточно средств!";
+      return;
+    }
+
+    // Случайное выпадение
+    const resultValue = diceValues[Math.floor(Math.random() * diceValues.length)];
+    const index = diceValues.indexOf(resultValue);
+
+    // Вращение колеса
+    const offset = 360 * 5 + ((index / diceValues.length) * 360);
+    wheel.style.transform = `rotate(${offset}deg)`;
+
+    setTimeout(() => {
+      if (resultValue === selectedDice) {
+        const win = bet * 5;
+        balance += win - bet;
+        resultDiv.textContent = `Выпало: ${resultValue}. Победа! Вы выиграли: ${win} 💰`;
+      } else {
+        balance -= bet;
+        resultDiv.textContent = `Выпало: ${resultValue}. Не угадали 😢`;
+      }
+
+      // Сохраняем обновлённый баланс
+      localStorage.setItem("balance", balance);
+      document.getElementById("balance").textContent = balance;
+
+      selectedDice = null;
+      document.querySelectorAll(".dice").forEach(d => d.classList.remove("selected"));
+      betInput.value = "";
+    }, 3000);
+  }
+</script>
