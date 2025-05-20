@@ -2,89 +2,152 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Казино с кубиками</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Неоновое казино</title>
   <style>
+    /* Твой существующий стиль с предыдущего ответа */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background-color: #2e003e;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
       color: white;
+      text-align: center;
+      padding: 20px;
+      animation: bgMove 20s ease-in-out infinite alternate;
+    }
+
+    @keyframes bgMove {
+      from { background-position: 0% 0%; }
+      to { background-position: 100% 100%; }
     }
 
     .balance {
-      margin: 20px;
-      font-size: 24px;
+      font-size: calc(20px + 2vw);
+      background: linear-gradient(to right, #00c6ff, #0072ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 20px;
+      text-shadow: 0 0 10px #00f0ff;
     }
 
     input[type="number"] {
-      padding: 8px;
-      font-size: 16px;
+      padding: 10px;
+      font-size: calc(14px + 0.5vw);
       width: 100px;
       margin-right: 10px;
-      border-radius: 5px;
+      border-radius: 8px;
       border: none;
-      background-color: #4a005c;
-      color: white;
+      background: rgba(255, 255, 255, 0.1);
+      color: #00f0ff;
       text-align: center;
+      box-shadow: 0 0 10px #00f0ff;
+      transition: all 0.3s ease;
+    }
+
+    input:focus {
+      outline: none;
+      box-shadow: 0 0 15px #00f0ff, 0 0 30px #00f0ff;
     }
 
     .suggested-bets,
-    .subtract-bets {
-      margin: 10px 0;
+    .subtract-bets,
+    .top-up-buttons {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 15px 0;
     }
 
-    .suggested-bets button,
-    .subtract-bets button {
-      margin: 0 5px;
-      background-color: #7b1fa2;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    .subtract-bets button {
-      background-color: #d32f2f;
-    }
-
-    button.spin-button {
+    button {
       padding: 10px 20px;
-      font-size: 16px;
-      background-color: #9c27b0;
-      color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 8px;
       cursor: pointer;
+      font-size: calc(12px + 0.5vw);
+      font-weight: bold;
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px #fff, 0 0 40px #fff;
+    }
+
+    .suggested-bets button {
+      background: linear-gradient(to right, #8e2de2, #4a00e0);
+    }
+
+    .subtract-bets button {
+      background: linear-gradient(to right, #ff416c, #ff4b2b);
+    }
+
+    .top-up-buttons button {
+      background: linear-gradient(to right, #00c9ff, #92fe9d);
+      color: black;
+    }
+
+    .spin-button {
+      background: linear-gradient(to right, #f7971e, #ffd200);
+      color: black;
+      box-shadow: 0 0 15px #ffd200;
     }
 
     .result {
       margin-top: 20px;
-      font-size: 20px;
+      font-size: calc(16px + 0.5vw);
+      text-shadow: 0 0 10px #00ff95;
     }
 
     .wheel-container {
       position: relative;
-      width: 300px;
-      height: 300px;
-      margin: 50px auto;
-      border: 5px solid #ffffffcc;
+      width: 80vw;
+      height: 80vw;
+      max-width: 300px;
+      max-height: 300px;
+      margin: 30px auto;
+      border: 4px solid #ffffffcc;
       border-radius: 50%;
       overflow: hidden;
+      box-shadow: 0 0 30px #8e2de2;
     }
 
     .arrow {
       position: absolute;
-      top: -25px;
+      top: -5vw;
       left: 50%;
       transform: translateX(-50%);
       width: 0; 
       height: 0; 
-      border-left: 20px solid transparent;
-      border-right: 20px solid transparent;
-      border-bottom: 30px solid red;
+      border-left: 2vw solid transparent;
+      border-right: 2vw solid transparent;
+      border-bottom: 4vw solid red;
       z-index: 10;
+      transition: transform 0.5s ease;
+    }
+
+    .winner-arrow {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%) rotate(0deg);
+      width: 0; 
+      height: 0; 
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-bottom: 25px solid gold;
+      z-index: 100;
+      animation: bounce 1s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(-10px); }
     }
 
     .wheel {
@@ -102,36 +165,61 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 60px;
-      height: 60px;
-      line-height: 60px;
-      font-size: 24px;
-      background-color: #9c27b0;
-      color: white;
+      width: 12vw;
+      height: 12vw;
+      max-width: 60px;
+      max-height: 60px;
+      line-height: 12vw;
+      max-line-height: 60px;
+      font-size: calc(18px + 0.5vw);
+      background: linear-gradient(45deg, #92fe9d, #00c9ff);
+      color: black;
       border-radius: 10px;
       text-align: center;
       user-select: none;
       pointer-events: auto;
+      box-shadow: 0 0 10px #00f0ff;
+      transition: transform 0.3s ease, background 0.3s ease;
     }
 
     .dice.selected {
-      background-color: #e040fb;
+      background: linear-gradient(45deg, #ff416c, #ff4b2b);
+      box-shadow: 0 0 20px #ff4b2b;
     }
 
     .last-results {
       margin-top: 20px;
-      font-size: 18px;
+      font-size: calc(14px + 0.3vw);
+      text-shadow: 0 0 10px #00ff95;
     }
 
     .last-results span {
       display: inline-block;
-      width: 40px;
-      height: 40px;
-      line-height: 40px;
+      width: 10vw;
+      height: 10vw;
+      max-width: 40px;
+      max-height: 40px;
+      line-height: 10vw;
+      max-line-height: 40px;
       margin: 0 5px;
-      background-color: #4a005c;
+      background: rgba(255, 255, 255, 0.1);
       border-radius: 50%;
       font-weight: bold;
+      box-shadow: 0 0 10px #fff;
+    }
+
+    @media (max-width: 600px) {
+      .dice {
+        width: 16vw;
+        height: 16vw;
+        font-size: 18px;
+      }
+
+      .last-results span {
+        width: 14vw;
+        height: 14vw;
+        font-size: 14px;
+      }
     }
   </style>
 </head>
@@ -139,7 +227,8 @@
 
 <div class="balance">Баланс: <span id="balance">1000</span></div>
 
-<input type="number" id="betAmount" placeholder="Ставка" min="1" max="10000"/>
+<!-- Ставка -->
+<input type="number" id="betAmount" placeholder="Ставка" min="1"/>
 <div class="suggested-bets">
   <button onclick="addToBet(10)">+10</button>
   <button onclick="addToBet(50)">+50</button>
@@ -154,10 +243,21 @@
 </div>
 <button class="spin-button" onclick="spinWheel()">Крутить!</button>
 
+<!-- Пополнение -->
+<h3 style="margin-top: 20px;">Пополнить баланс</h3>
+<input type="number" id="topUpAmount" placeholder="Сумма пополнения" min="1">
+<div class="top-up-buttons">
+  <button onclick="addToTopUp(100)">+100</button>
+  <button onclick="addToTopUp(500)">+500</button>
+  <button onclick="addToTopUp(1000)">+1000</button>
+  <button onclick="addToTopUp(5000)">+5000</button>
+</div>
+<button onclick="topUpBalance()" style="background: linear-gradient(to right, #00c9ff, #92fe9d); color: black;">Пополнить</button>
+
 <div class="result" id="result"></div>
 
 <div class="wheel-container">
-  <div class="arrow"></div>
+  <div class="arrow" id="winnerArrow"></div>
   <div class="wheel" id="wheel"></div>
 </div>
 
@@ -172,11 +272,11 @@
   let balance = 1000;
   let selectedDice = null;
   const wheel = document.getElementById("wheel");
+  const winnerArrow = document.getElementById("winnerArrow");
   const radius = 120;
   const centerX = 150;
   const centerY = 150;
 
-  // Хранилище последних выпадений
   const lastResults = [];
 
   function createDiceElements() {
@@ -191,16 +291,12 @@
       div.style.top = `${y}px`;
       div.textContent = diceValues[i];
       div.dataset.value = diceValues[i];
-
-      // Запоминаем угол для последующего выравнивания
-      div.dataset.angle = (-angle * 180 / Math.PI); // противоположный
-
+      div.dataset.angle = (-angle * 180 / Math.PI);
       div.onclick = () => {
         document.querySelectorAll(".dice").forEach(d => d.classList.remove("selected"));
         div.classList.add("selected");
         selectedDice = parseInt(div.dataset.value);
       };
-
       wheel.appendChild(div);
     }
   }
@@ -217,16 +313,8 @@
 
   function updateLastResults(value) {
     const container = document.getElementById("lastResults");
-
-    // Добавляем новое значение
     lastResults.unshift(value);
-
-    // Ограничиваем до 5 последних
-    if (lastResults.length > 5) {
-      lastResults.pop();
-    }
-
-    // Очищаем контейнер и перерисовываем
+    if (lastResults.length > 5) lastResults.pop();
     container.innerHTML = '';
     lastResults.forEach(num => {
       const span = document.createElement('span');
@@ -235,7 +323,10 @@
     });
   }
 
-  // Добавляет значение к ставке
+  function updateBalanceDisplay() {
+    document.getElementById("balance").textContent = balance;
+  }
+
   function addToBet(amount) {
     const betInput = document.getElementById("betAmount");
     let current = parseInt(betInput.value) || 0;
@@ -243,12 +334,31 @@
     betInput.value = current;
   }
 
-  // Вычитает значение из ставки
   function subtractFromBet(amount) {
     const betInput = document.getElementById("betAmount");
     let current = parseInt(betInput.value) || 0;
-    current = Math.max(current - amount, 0); // не меньше 0
+    current = Math.max(current - amount, 0);
     betInput.value = current;
+  }
+
+  function addToTopUp(amount) {
+    const topUpInput = document.getElementById("topUpAmount");
+    let current = parseInt(topUpInput.value) || 0;
+    current += amount;
+    topUpInput.value = current;
+  }
+
+  function topUpBalance() {
+    const topUpInput = document.getElementById("topUpAmount");
+    const amount = parseInt(topUpInput.value);
+    if (!isNaN(amount) && amount > 0) {
+      balance += amount;
+      updateBalanceDisplay();
+      topUpInput.value = "";
+      document.getElementById("result").textContent = `Баланс пополнен на ${amount}! Новый баланс: ${balance}`;
+    } else {
+      document.getElementById("result").textContent = "Введите корректную сумму для пополнения!";
+    }
   }
 
   function spinWheel() {
@@ -271,11 +381,8 @@
       return;
     }
 
-    // Случайное выпадение
     const resultValue = diceValues[Math.floor(Math.random() * diceValues.length)];
     const index = diceValues.indexOf(resultValue);
-
-    // Вращение колеса
     const offset = 360 * 5 + ((index / diceValues.length) * 360);
     wheel.style.transform = `rotate(${offset}deg)`;
 
@@ -289,18 +396,23 @@
         resultDiv.textContent = `Выпало: ${resultValue}. Не угадали 😢`;
       }
 
-      document.getElementById("balance").textContent = balance;
+      updateBalanceDisplay();
       selectedDice = null;
       document.querySelectorAll(".dice").forEach(d => d.classList.remove("selected"));
       betInput.value = "";
-
-      // Обновляем историю выпадений
       updateLastResults(resultValue);
 
-      // Исправляем поворот кубиков
+      // Возвращаем кубики в правильное положение
       fixDiceRotation();
+
+      // Устанавливаем угол стрелки
+      const anglePerItem = 360 / diceValues.length;
+      const targetAngle = -index * anglePerItem;
+      winnerArrow.style.transform = `translateX(-50%) rotate(${targetAngle}deg)`;
     }, 3000);
   }
+
+  updateBalanceDisplay();
 </script>
 
 </body>
