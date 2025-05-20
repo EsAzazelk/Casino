@@ -3,60 +3,84 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Лас-Вегас Казино</title>
+  <title>Neon Casino</title>
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
     body {
-      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      background-color: #0f0c29;
       color: white;
+      font-family: 'Segoe UI', sans-serif;
       display: flex;
       min-height: 100vh;
-      overflow-x: hidden;
+      flex-direction: row-reverse; /* Важно для правого меню */
     }
 
-    .menu-toggle {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      z-index: 1000;
-      background: rgba(255, 255, 255, 0.1);
+    .neon-text {
+      color: #e0b4ff;
+      text-shadow: 0 0 5px #a64dff, 0 0 10px #a64dff;
+    }
+
+    .neon-btn {
+      background: linear-gradient(to right, #8e2de2, #4a00e0);
+      color: white;
       border: none;
       padding: 10px 15px;
-      font-size: 1.5em;
+      font-size: 1em;
       cursor: pointer;
       border-radius: 5px;
-      display: none; /* Скроем на десктопе */
+      transition: transform 0.2s ease;
     }
 
+    .neon-btn:hover {
+      transform: scale(1.05);
+    }
+
+    /* Кнопка меню */
+    .menu-toggle {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      z-index: 1000;
+      font-size: 1.5em;
+      background: transparent;
+      border: none;
+      color: #e0b4ff;
+      display: none;
+    }
+
+    /* Сайдбар — теперь справа */
     .sidebar {
       width: 220px;
-      background: rgba(0, 0, 0, 0.7);
+      background: #1a001f;
       padding: 20px;
-      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
-      position: fixed;
       height: 100%;
       overflow-y: auto;
-      transition: transform 0.3s ease;
+      position: fixed;
+      top: 0;
+      right: -220px;
       z-index: 999;
+      transition: right 0.3s ease;
+    }
+
+    .sidebar.active {
+      right: 0;
     }
 
     .sidebar.hidden {
-      transform: translateX(-100%);
+      right: -220px;
     }
 
     .sidebar h2 {
       text-align: center;
       margin-bottom: 20px;
       font-size: 1.2em;
-      background: linear-gradient(to right, gold, red);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      color: #e0b4ff;
+      text-shadow: 0 0 10px #a64dff;
     }
 
     .sidebar button {
@@ -65,54 +89,50 @@
       padding: 10px;
       margin-bottom: 10px;
       background: linear-gradient(to right, #8e2de2, #4a00e0);
-      border: none;
       color: white;
       font-size: 1em;
-      cursor: pointer;
+      border: none;
       border-radius: 5px;
+      cursor: pointer;
       transition: all 0.3s ease;
     }
 
-    .sidebar button:hover {
-      transform: scale(1.05);
-      background: linear-gradient(to right, #ff416c, #ff4b2b);
-    }
-
     .main-content {
-      margin-left: 220px;
       padding: 20px;
-      width: calc(100% - 220px);
-      min-height: 100vh;
-      background-image: url('https://i.imgur.com/2rQQcCz.jpg ');
-      background-size: cover;
-      background-position: center;
-      transition: margin-left 0.3s ease;
+      flex: 1;
+      margin-right: 0;
+      margin-left: 0;
     }
 
-    .main-content.full {
-      margin-left: 0;
+    @media (min-width: 769px) {
+      .main-content {
+        margin-right: 220px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .menu-toggle {
+        display: block;
+      }
+
+      .main-content {
+        margin-right: 0;
+      }
     }
 
     .game-section {
       display: none;
-      animation: fadeIn 0.5s ease-in-out;
     }
 
     .game-section.active {
       display: block;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
     .balance-display {
       font-size: 1.5em;
-      font-weight: bold;
-      color: gold;
+      color: #e0b4ff;
       margin-bottom: 20px;
-      text-shadow: 0 0 10px gold;
+      text-shadow: 0 0 10px #a64dff;
     }
 
     input[type="number"] {
@@ -121,22 +141,22 @@
       width: 100px;
       border-radius: 5px;
       border: none;
-      margin-right: 10px;
       background: rgba(255, 255, 255, 0.1);
-      color: white;
+      color: #e0b4ff;
       text-align: center;
-      box-shadow: 0 0 10px gold;
+      box-shadow: 0 0 10px #a64dff;
+      margin-right: 10px;
     }
 
     input:focus {
       outline: none;
-      box-shadow: 0 0 15px gold, 0 0 30px gold;
+      box-shadow: 0 0 15px #a64dff, 0 0 30px #a64dff;
     }
 
     .result {
       margin-top: 20px;
       font-size: 1.2em;
-      text-shadow: 0 0 10px gold;
+      text-shadow: 0 0 10px #a64dff;
     }
 
     .cards {
@@ -167,22 +187,11 @@
       margin: 20px 0;
     }
 
-    .last-results {
-      margin-top: 20px;
-      font-size: 1em;
-      text-shadow: 0 0 10px gold;
-    }
-
-    .last-results span {
-      display: inline-block;
-      width: 40px;
-      height: 40px;
-      line-height: 40px;
-      margin: 0 5px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 50%;
-      font-weight: bold;
-      box-shadow: 0 0 10px gold;
+    .footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 0.9em;
+      color: #aaa;
     }
 
     .coin-container {
@@ -215,7 +224,6 @@
       justify-content: center;
       font-size: 60px;
       font-weight: bold;
-      text-shadow: 0 0 10px gold;
     }
 
     .head {
@@ -229,77 +237,16 @@
       transform: rotateY(180deg);
     }
 
-    .wheel-container {
-      position: relative;
-      width: 80vw;
-      height: 80vw;
-      max-width: 300px;
-      max-height: 300px;
-      margin: 30px auto;
-      border: 4px solid #ffffffcc;
+    .last-results span {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      line-height: 40px;
+      margin: 0 5px;
+      background: rgba(255, 255, 255, 0.1);
       border-radius: 50%;
-      overflow: hidden;
-      box-shadow: 0 0 30px #8e2de2;
-    }
-
-    .dice {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 12vw;
-      height: 12vw;
-      max-width: 60px;
-      max-height: 60px;
-      line-height: 12vw;
-      font-size: calc(18px + 0.5vw);
-      background: linear-gradient(45deg, #92fe9d, #00c9ff);
-      color: black;
-      border-radius: 10px;
-      text-align: center;
-      user-select: none;
-      pointer-events: auto;
-      box-shadow: 0 0 10px #00f0ff;
-      transition: transform 0.3s ease, background 0.3s ease;
-    }
-
-    .dice.selected {
-      background: linear-gradient(45deg, #ff416c, #ff4b2b);
-      box-shadow: 0 0 20px #ff4b2b;
-    }
-
-    .footer {
-      margin-top: 40px;
-      font-size: 0.9em;
-      color: #ccc;
-    }
-
-    @media (max-width: 768px) {
-      .menu-toggle {
-        display: block;
-      }
-
-      .sidebar {
-        position: fixed;
-        top: 0;
-        left: -220px;
-        height: 100%;
-        z-index: 999;
-        transition: left 0.3s ease;
-      }
-
-      .sidebar.active {
-        left: 0;
-      }
-
-      .main-content {
-        margin-left: 0;
-        width: 100%;
-      }
-
-      .main-content.full {
-        margin-left: 0;
-      }
+      font-weight: bold;
+      box-shadow: 0 0 10px #a64dff;
     }
   </style>
 </head>
@@ -308,37 +255,34 @@
 <!-- Кнопка меню -->
 <button class="menu-toggle" onclick="toggleMenu()">☰</button>
 
-<!-- Сайдбар -->
-<div id="sidebar" class="sidebar">
-  <h2>Лас-Вегас</h2>
-  <button onclick="showPage('balance')">Баланс</button>
-  <button onclick="showPage('coin')">Орёл или Решка</button>
-  <button onclick="showPage('roulette')">Рулетка</button>
-  <button onclick="showPage('blackjack')">Блэкджек</button>
-  <button onclick="showPage('slots')">Слоты</button>
-</div>
-
 <!-- Основной контент -->
 <div id="mainContent" class="main-content">
 
   <!-- Баланс -->
   <div id="balance" class="game-section active">
-    <h2>Ваш баланс</h2>
+    <h2 class="neon-text">Ваш баланс</h2>
     <div class="balance-display">Баланс: <span id="balanceValue">1000</span></div>
-    <input type="number" id="topUpAmount" placeholder="Сумма пополнения" min="1"/>
-    <button onclick="topUpBalance()">Пополнить</button>
+  </div>
+
+  <!-- Пополнение -->
+  <div id="topup" class="game-section">
+    <h2 class="neon-text">Пополнить баланс</h2>
+    <div class="balance-display">Текущий баланс: <span id="topUpBalanceDisplay">1000</span></div>
+    <input type="number" id="topUpAmount" placeholder="Сумма" min="1"/>
+    <button class="neon-btn" onclick="topUpBalance()">Пополнить</button>
+    <div class="result" id="topUpResult"></div>
   </div>
 
   <!-- Игра: Орёл или Решка -->
   <div id="coin" class="game-section">
-    <h2>Игра: Орёл или Решка</h2>
+    <h2 class="neon-text">Орёл или Решка</h2>
     <div class="balance-display">Баланс: <span id="balanceCoin">1000</span></div>
     <input type="number" id="betAmountCoin" placeholder="Ставка" min="1"/>
     <div style="margin: 10px;">
-      <button onclick="chooseSideCoin('head')">Орёл</button>
-      <button onclick="chooseSideCoin('tail')">Решка</button>
+      <button class="neon-btn" onclick="chooseSideCoin('head')">Орёл</button>
+      <button class="neon-btn" onclick="chooseSideCoin('tail')">Решка</button>
     </div>
-    <button onclick="flipCoin()">Играть</button>
+    <button class="neon-btn" onclick="flipCoin()">Играть</button>
     <div class="coin-container">
       <div class="coin" id="coinFlip">
         <div class="side head">👑</div>
@@ -352,40 +296,15 @@
     </div>
   </div>
 
-  <!-- Игра: Рулетка -->
-  <div id="roulette" class="game-section">
-    <h2>Игра: Рулетка</h2>
-    <div class="balance-display">Баланс: <span id="balanceRoulette">1000</span></div>
-    <input type="number" id="betAmountRoulette" placeholder="Ставка" min="1"/>
-    <div style="margin: 10px;">
-      <button onclick="selectDiceRoulette(1)">1</button>
-      <button onclick="selectDiceRoulette(2)">2</button>
-      <button onclick="selectDiceRoulette(3)">3</button>
-      <button onclick="selectDiceRoulette(4)">4</button>
-      <button onclick="selectDiceRoulette(5)">5</button>
-      <button onclick="selectDiceRoulette(6)">6</button>
-    </div>
-    <button onclick="spinWheel()">Крутить!</button>
-    <div class="wheel-container">
-      <div class="arrow" id="winnerArrow"></div>
-      <div class="wheel" id="wheel"></div>
-    </div>
-    <div class="result" id="resultRoulette"></div>
-    <div class="last-results">
-      Последние выпавшие числа:
-      <div id="lastResultsRoulette"></div>
-    </div>
-  </div>
-
   <!-- Игра: Блэкджек -->
   <div id="blackjack" class="game-section">
-    <h2>Блэкджек</h2>
+    <h2 class="neon-text">Блэкджек</h2>
     <div class="balance-display">Баланс: <span id="balanceBJ">1000</span></div>
     <input type="number" id="betAmountBJ" placeholder="Ставка" min="1"/>
     <div>
-      <button onclick="startBlackjack()">Начать</button>
-      <button onclick="hit()">Ещё</button>
-      <button onclick="stand()">Хватит</button>
+      <button class="neon-btn" onclick="startBlackjack()">Начать</button>
+      <button class="neon-btn" onclick="hit()">Ещё</button>
+      <button class="neon-btn" onclick="stand()">Хватит</button>
     </div>
     <div style="margin: 20px;">
       <strong>Вы:</strong><br>
@@ -402,10 +321,10 @@
 
   <!-- Игра: Слоты -->
   <div id="slots" class="game-section">
-    <h2>Слоты</h2>
+    <h2 class="neon-text">Слоты</h2>
     <div class="balance-display">Баланс: <span id="balanceSlot">1000</span></div>
     <input type="number" id="betAmountSlot" placeholder="Ставка" min="1"/>
-    <button onclick="playSlots()">Крутить</button>
+    <button class="neon-btn" onclick="playSlots()">Крутить</button>
     <div class="slot-row" id="slotRow">
       <div class="slot">?</div>
       <div class="slot">?</div>
@@ -414,49 +333,52 @@
     <div class="result" id="resultSlot"></div>
   </div>
 
+  <div class="footer">© 2025 Neon Casino</div>
+</div>
+
+<!-- Сайдбар (теперь справа) -->
+<div id="sidebar" class="sidebar">
+  <h2 class="neon-text">Меню</h2>
+  <button onclick="showPage('balance')">Баланс</button>
+  <button onclick="showPage('topup')">Пополнить</button>
+  <button onclick="showPage('coin')">Орёл или Решка</button>
+  <button onclick="showPage('blackjack')">Блэкджек</button>
+  <button onclick="showPage('slots')">Слоты</button>
 </div>
 
 <script>
   let balance = 1000;
 
   function updateAllBalances() {
-    document.querySelectorAll(".balance-display span").forEach(el => el.textContent = balance);
+    document.getElementById("balanceValue").textContent = balance;
+    document.getElementById("topUpBalanceDisplay").textContent = balance;
+    document.getElementById("balanceCoin").textContent = balance;
+    document.getElementById("balanceBJ").textContent = balance;
+    document.getElementById("balanceSlot").textContent = balance;
   }
 
   function showPage(pageId) {
     document.querySelectorAll(".game-section").forEach(el => el.classList.remove("active"));
     document.getElementById(pageId).classList.add("active");
-    toggleMenu(false); // Закрываем меню после выбора игры на мобильных
+    toggleMenu(false); // Закрыть меню после выбора
   }
 
   function toggleMenu(forceState = null) {
     const sidebar = document.getElementById("sidebar");
-    const main = document.getElementById("mainContent");
 
-    if (forceState === true || (forceState === null && !sidebar.classList.contains("active"))) {
-      sidebar.classList.add("active");
-      sidebar.classList.remove("hidden");
-      main.classList.add("full");
-    } else {
-      sidebar.classList.remove("active");
-      sidebar.classList.add("hidden");
-      main.classList.remove("full");
+    if (window.innerWidth <= 768) {
+      if (forceState === true || (forceState === null && !sidebar.classList.contains("active"))) {
+        sidebar.classList.add("active");
+        sidebar.classList.remove("hidden");
+      } else {
+        sidebar.classList.remove("active");
+        sidebar.classList.add("hidden");
+      }
     }
   }
 
-  // Для мобильных устройств: закрыть меню при клике вне его
-  document.addEventListener("click", function(e) {
-    const sidebar = document.getElementById("sidebar");
-    const menuToggle = document.querySelector(".menu-toggle");
-
-    if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
-      toggleMenu(false);
-    }
-  });
-
   // === Coin Flip Game ===
   let selectedSideCoin = null;
-  const lastResultsCoin = [];
 
   function chooseSideCoin(side) {
     selectedSideCoin = side;
@@ -472,13 +394,8 @@
       return;
     }
 
-    if (isNaN(bet) || bet <= 0) {
+    if (isNaN(bet) || bet <= 0 || bet > balance) {
       resultDiv.textContent = "Введите корректную ставку!";
-      return;
-    }
-
-    if (bet > balance) {
-      resultDiv.textContent = "Недостаточно средств!";
       return;
     }
 
@@ -489,101 +406,7 @@
 
     resultDiv.textContent = `Выпало: ${result === 'head' ? 'Орёл 👑' : 'Решка 🪙'}, ${(win ? 'Вы выиграли!' : 'Вы проиграли...')} Ваш баланс: ${balance}`;
     updateAllBalances();
-
-    lastResultsCoin.unshift(result === 'head' ? 'O' : 'P');
-    if (lastResultsCoin.length > 5) lastResultsCoin.pop();
-    document.getElementById("lastResultsCoin").innerHTML = lastResultsCoin.map(r => `<span>${r}</span>`).join("");
     selectedSideCoin = null;
-  }
-
-  // === Roulette Game ===
-  const diceValues = [1, 2, 3, 4, 5, 6];
-  let selectedDiceRoulette = null;
-
-  function createDiceElements() {
-    const wheel = document.getElementById("wheel");
-    const radius = 120;
-    const centerX = 150;
-    const centerY = 150;
-
-    for (let i = 0; i < diceValues.length; i++) {
-      const angle = (i / diceValues.length) * 2 * Math.PI;
-      const x = centerX + radius * Math.cos(angle);
-      const y = centerY + radius * Math.sin(angle);
-
-      const div = document.createElement("div");
-      div.className = "dice";
-      div.style.left = `${x}px`;
-      div.style.top = `${y}px`;
-      div.textContent = diceValues[i];
-      div.dataset.value = diceValues[i];
-      div.dataset.angle = (-angle * 180 / Math.PI);
-      div.onclick = () => {
-        document.querySelectorAll(".dice").forEach(d => d.classList.remove("selected"));
-        div.classList.add("selected");
-        selectedDiceRoulette = parseInt(div.dataset.value);
-      };
-      wheel.appendChild(div);
-    }
-  }
-
-  createDiceElements();
-
-  function fixDiceRotation() {
-    const dices = document.querySelectorAll(".dice");
-    dices.forEach(dice => {
-      const correctAngle = parseFloat(dice.dataset.angle);
-      dice.style.transform = `translate(-50%, -50%) rotate(${correctAngle}deg)`;
-    });
-  }
-
-  function selectDiceRoulette(num) {
-    selectedDiceRoulette = num;
-    document.querySelectorAll(".dice").forEach(d => d.classList.remove("selected"));
-    document.querySelector(`[data-value='${num}']`).classList.add("selected");
-  }
-
-  function spinWheel() {
-    const resultDiv = document.getElementById("resultRoulette");
-    const betInput = document.getElementById("betAmountRoulette");
-    const bet = parseInt(betInput.value);
-
-    if (!selectedDiceRoulette) {
-      resultDiv.textContent = "Выберите число!";
-      return;
-    }
-
-    if (isNaN(bet) || bet <= 0) {
-      resultDiv.textContent = "Введите корректную ставку!";
-      return;
-    }
-
-    if (bet > balance) {
-      resultDiv.textContent = "Недостаточно средств!";
-      return;
-    }
-
-    const resultValue = diceValues[Math.floor(Math.random() * diceValues.length)];
-    const index = diceValues.indexOf(resultValue);
-    const offset = 360 * 5 + ((index / diceValues.length) * 360);
-    document.getElementById("wheel").style.transform = `rotate(${offset}deg)`;
-
-    setTimeout(() => {
-      if (resultValue === selectedDiceRoulette) {
-        const win = bet * 5;
-        balance += win - bet;
-        resultDiv.textContent = `Выпало: ${resultValue}. Победа! Вы выиграли: ${win} 💰`;
-      } else {
-        balance -= bet;
-        resultDiv.textContent = `Выпало: ${resultValue}. Не угадали 😢`;
-      }
-
-      updateAllBalances();
-      selectedDiceRoulette = null;
-      document.querySelectorAll(".dice").forEach(d => d.classList.remove("selected"));
-      betInput.value = "";
-      fixDiceRotation();
-    }, 3000);
   }
 
   // === Blackjack Game ===
@@ -610,10 +433,7 @@
       score += val;
       if (c === 'A') aces++;
     });
-    while (score > 21 && aces > 0) {
-      score -= 10;
-      aces--;
-    }
+    while (score > 21 && aces > 0) { score -= 10; aces--; }
     return score;
   }
 
@@ -634,19 +454,22 @@
     canHit = false;
     const betInput = document.getElementById("betAmountBJ");
     const bet = parseInt(betInput.value);
-    let dealerScore = calculateScore(dealerCards);
-    while (dealerScore < 17) {
-      dealerCards.push(getRandomCard());
-      dealerScore = calculateScore(dealerCards);
+    if (isNaN(bet) || bet <= 0 || bet > balance) {
+      alert("Введите корректную ставку!");
+      return;
     }
-    updateBlackjackUI();
+
+    while (calculateScore(dealerCards) < 17) {
+      dealerCards.push(getRandomCard());
+    }
 
     const playerScore = calculateScore(playerCards);
+    const dealerScore = calculateScore(dealerCards);
     const resultDiv = document.getElementById("resultBJ");
 
     if (playerScore > 21) {
       balance -= bet;
-      resultDiv.textContent = `Перебор! Вы проиграли. Новый баланс: ${balance}`;
+      resultDiv.textContent = `Перебор! Новый баланс: ${balance}`;
     } else if (dealerScore > 21 || playerScore > dealerScore) {
       balance += bet;
       resultDiv.textContent = `Вы выиграли! Новый баланс: ${balance}`;
@@ -663,6 +486,7 @@
   function updateBlackjackUI() {
     const playerHTML = playerCards.map(c => `<div class="card">${c}</div>`).join('');
     const dealerHTML = dealerCards.map(c => `<div class="card">${c}</div>`).join('');
+
     document.getElementById("playerCards").innerHTML = playerHTML;
     document.getElementById("dealerCards").innerHTML = dealerHTML;
     document.getElementById("playerScore").textContent = calculateScore(playerCards);
@@ -673,12 +497,15 @@
   const slotSymbols = ['🍒', '🍋', '🔔', '💎', '🍀', '7️⃣'];
 
   function getRandomSymbol() {
-    const symbols = ['🍒', '🍋', '🔔', '💎', '🍀', '7️⃣', '🍒', '🍒', '🍋', '🔔'];
+    const symbols = ['🍒', '🍋', '🔔', '🍀', '🍒', '🍋'];
     return symbols[Math.floor(Math.random() * symbols.length)];
   }
 
   function playSlots() {
-    const bet = parseInt(document.getElementById("betAmountSlot").value);
+    const betInput = document.getElementById("betAmountSlot");
+    const bet = parseInt(betInput.value);
+    const resultDiv = document.getElementById("resultSlot");
+
     if (isNaN(bet) || bet <= 0 || bet > balance) {
       alert("Введите корректную ставку!");
       return;
@@ -694,17 +521,15 @@
       <div class="slot">${s3}</div>
     `;
 
-    const resultDiv = document.getElementById("resultSlot");
-
     if (s1 === s2 && s2 === s3) {
       balance += bet * 10;
-      resultDiv.textContent = `🎉 Джекпот! Три одинаковых символа! Вы выиграли ${bet * 10} 💰`;
+      resultDiv.textContent = `🎉 Джекпот! Три одинаковых символа!`;
     } else if (s1 === s2 || s2 === s3 || s1 === s3) {
       balance += bet * 2;
-      resultDiv.textContent = `🎯 Два одинаковых символа! Вы выиграли ${bet * 2} 💰`;
+      resultDiv.textContent = `🎯 Два одинаковых символа!`;
     } else {
       balance -= bet;
-      resultDiv.textContent = `❌ К сожалению, повезёт в следующий раз. Вы проиграли ${bet} 💰`;
+      resultDiv.textContent = `❌ Повезёт в следующий раз.`;
     }
 
     updateAllBalances();
@@ -713,13 +538,15 @@
   // === Пополнение баланса ===
   function topUpBalance() {
     const amount = parseInt(document.getElementById("topUpAmount").value);
+    const resultDiv = document.getElementById("topUpResult");
+
     if (!isNaN(amount) && amount > 0) {
       balance += amount;
       updateAllBalances();
       document.getElementById("topUpAmount").value = "";
-      alert(`Баланс пополнен на ${amount}!`);
+      resultDiv.textContent = `Баланс пополнен на ${amount}! Новый баланс: ${balance}`;
     } else {
-      alert("Введите корректную сумму!");
+      resultDiv.textContent = "Введите корректную сумму!";
     }
   }
 
