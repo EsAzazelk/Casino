@@ -2,9 +2,52 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Мой сайт</title>
+  <title>Casino</title>
+  <style>
+    body {
+      background: #000;
+      color: #fff;
+      font-family: sans-serif;
+      text-align: center;
+      padding-top: 50px;
+    }
+    h1 {
+      font-size: 3rem;
+      color: gold;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1.2rem;
+      background: green;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    p {
+      margin-top: 20px;
+      font-size: 1.5rem;
+    }
+  </style>
 </head>
 <body>
-  <h1>Привет, это мой сайт!</h1>
+  <h1>Casino Casino</h1>
+  <button onclick="playGame()">Играть</button>
+  <p id="result"></p>
+
+  <script>
+    function playGame() {
+      const number = Math.floor(Math.random() * 10) + 1;
+      const result = document.getElementById("result");
+
+      if (number > 5) {
+        result.textContent = "🎉 Вы выиграли! Число: " + number;
+        result.style.color = "lime";
+      } else {
+        result.textContent = "😢 Вы проиграли... Число: " + number;
+        result.style.color = "red";
+      }
+    }
+  </script>
 </body>
 </html>
