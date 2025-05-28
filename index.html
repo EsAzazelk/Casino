@@ -1,557 +1,242 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Neon Casino</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Простое Казино</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
 
-    body {
-      background-color: #0f0c29;
-      color: white;
-      font-family: 'Segoe UI', sans-serif;
-      display: flex;
-      min-height: 100vh;
-      flex-direction: row-reverse; /* Важно для правого меню */
-    }
+        #app {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+        }
 
-    .neon-text {
-      color: #e0b4ff;
-      text-shadow: 0 0 5px #a64dff, 0 0 10px #a64dff;
-    }
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
 
-    .neon-btn {
-      background: linear-gradient(to right, #8e2de2, #4a00e0);
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      font-size: 1em;
-      cursor: pointer;
-      border-radius: 5px;
-      transition: transform 0.2s ease;
-    }
+        input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
 
-    .neon-btn:hover {
-      transform: scale(1.05);
-    }
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
 
-    /* Кнопка меню */
-    .menu-toggle {
-      position: fixed;
-      top: 15px;
-      right: 15px;
-      z-index: 1000;
-      font-size: 1.5em;
-      background: transparent;
-      border: none;
-      color: #e0b4ff;
-      display: none;
-    }
+        button:hover {
+            background-color: #45a049;
+        }
 
-    /* Сайдбар — теперь справа */
-    .sidebar {
-      width: 220px;
-      background: #1a001f;
-      padding: 20px;
-      height: 100%;
-      overflow-y: auto;
-      position: fixed;
-      top: 0;
-      right: -220px;
-      z-index: 999;
-      transition: right 0.3s ease;
-    }
+        .balance {
+            font-size: 1.2em;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f8f8f8;
+            border-radius: 5px;
+        }
 
-    .sidebar.active {
-      right: 0;
-    }
+        .game {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
 
-    .sidebar.hidden {
-      right: -220px;
-    }
+        .logout-btn {
+            margin-top: 20px;
+            background-color: #f44336;
+        }
 
-    .sidebar h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      font-size: 1.2em;
-      color: #e0b4ff;
-      text-shadow: 0 0 10px #a64dff;
-    }
+        .logout-btn:hover {
+            background-color: #d32f2f;
+        }
 
-    .sidebar button {
-      display: block;
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      background: linear-gradient(to right, #8e2de2, #4a00e0);
-      color: white;
-      font-size: 1em;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .main-content {
-      padding: 20px;
-      flex: 1;
-      margin-right: 0;
-      margin-left: 0;
-    }
-
-    @media (min-width: 769px) {
-      .main-content {
-        margin-right: 220px;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .menu-toggle {
-        display: block;
-      }
-
-      .main-content {
-        margin-right: 0;
-      }
-    }
-
-    .game-section {
-      display: none;
-    }
-
-    .game-section.active {
-      display: block;
-    }
-
-    .balance-display {
-      font-size: 1.5em;
-      color: #e0b4ff;
-      margin-bottom: 20px;
-      text-shadow: 0 0 10px #a64dff;
-    }
-
-    input[type="number"] {
-      padding: 10px;
-      font-size: 1em;
-      width: 100px;
-      border-radius: 5px;
-      border: none;
-      background: rgba(255, 255, 255, 0.1);
-      color: #e0b4ff;
-      text-align: center;
-      box-shadow: 0 0 10px #a64dff;
-      margin-right: 10px;
-    }
-
-    input:focus {
-      outline: none;
-      box-shadow: 0 0 15px #a64dff, 0 0 30px #a64dff;
-    }
-
-    .result {
-      margin-top: 20px;
-      font-size: 1.2em;
-      text-shadow: 0 0 10px #a64dff;
-    }
-
-    .cards {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin: 20px 0;
-    }
-
-    .card {
-      width: 60px;
-      height: 90px;
-      background: white;
-      color: black;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 20px;
-    }
-
-    .slot-row {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      font-size: 60px;
-      margin: 20px 0;
-    }
-
-    .footer {
-      text-align: center;
-      padding: 20px;
-      font-size: 0.9em;
-      color: #aaa;
-    }
-
-    .coin-container {
-      margin: 30px auto;
-      width: 150px;
-      height: 150px;
-      perspective: 600px;
-    }
-
-    .coin {
-      width: 100%;
-      height: 100%;
-      position: relative;
-      transform-style: preserve-3d;
-      transition: transform 1s ease-in-out;
-    }
-
-    .coin.flip {
-      transform: rotateY(1800deg);
-    }
-
-    .side {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      backface-visibility: hidden;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 60px;
-      font-weight: bold;
-    }
-
-    .head {
-      background: gold;
-      color: black;
-    }
-
-    .tail {
-      background: silver;
-      color: black;
-      transform: rotateY(180deg);
-    }
-
-    .last-results span {
-      display: inline-block;
-      width: 40px;
-      height: 40px;
-      line-height: 40px;
-      margin: 0 5px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 50%;
-      font-weight: bold;
-      box-shadow: 0 0 10px #a64dff;
-    }
-  </style>
+        #dice-result {
+            margin-top: 15px;
+            font-size: 1.2em;
+            min-height: 30px;
+        }
+    </style>
 </head>
 <body>
+    <div id="app">
+        <div id="auth-forms">
+            <div class="form-container" id="login-form">
+                <h2>Вход</h2>
+                <input type="text" id="login-username" placeholder="Имя пользователя">
+                <input type="password" id="login-password" placeholder="Пароль">
+                <button onclick="login()">Войти</button>
+                <p>Нет аккаунта? <a href="#" onclick="showRegister()">Зарегистрируйтесь</a></p>
+            </div>
 
-<!-- Кнопка меню -->
-<button class="menu-toggle" onclick="toggleMenu()">☰</button>
+            <div class="form-container" id="register-form" style="display: none;">
+                <h2>Регистрация</h2>
+                <input type="text" id="register-username" placeholder="Имя пользователя">
+                <input type="password" id="register-password" placeholder="Пароль">
+                <input type="number" id="register-start-balance" placeholder="Начальный баланс" value="1000">
+                <button onclick="register()">Зарегистрироваться</button>
+                <p>Уже есть аккаунт? <a href="#" onclick="showLogin()">Войдите</a></p>
+            </div>
+        </div>
 
-<!-- Основной контент -->
-<div id="mainContent" class="main-content">
-
-  <!-- Баланс -->
-  <div id="balance" class="game-section active">
-    <h2 class="neon-text">Ваш баланс</h2>
-    <div class="balance-display">Баланс: <span id="balanceValue">1000</span></div>
-  </div>
-
-  <!-- Пополнение -->
-  <div id="topup" class="game-section">
-    <h2 class="neon-text">Пополнить баланс</h2>
-    <div class="balance-display">Текущий баланс: <span id="topUpBalanceDisplay">1000</span></div>
-    <input type="number" id="topUpAmount" placeholder="Сумма" min="1"/>
-    <button class="neon-btn" onclick="topUpBalance()">Пополнить</button>
-    <div class="result" id="topUpResult"></div>
-  </div>
-
-  <!-- Игра: Орёл или Решка -->
-  <div id="coin" class="game-section">
-    <h2 class="neon-text">Орёл или Решка</h2>
-    <div class="balance-display">Баланс: <span id="balanceCoin">1000</span></div>
-    <input type="number" id="betAmountCoin" placeholder="Ставка" min="1"/>
-    <div style="margin: 10px;">
-      <button class="neon-btn" onclick="chooseSideCoin('head')">Орёл</button>
-      <button class="neon-btn" onclick="chooseSideCoin('tail')">Решка</button>
+        <div id="casino" style="display: none;">
+            <h1>Добро пожаловать, <span id="username-display"></span>!</h1>
+            <div class="balance">Баланс: $<span id="balance">0</span></div>
+            
+            <div class="game">
+                <h2>Игра в кости</h2>
+                <p>Ставка: <input type="number" id="bet-amount" min="1" value="10"></p>
+                <p>Выберите число (1-6): <input type="number" id="player-number" min="1" max="6" value="3"></p>
+                <button onclick="playDice()">Играть</button>
+                <div id="dice-result"></div>
+            </div>
+            
+            <button onclick="logout()" class="logout-btn">Выйти</button>
+        </div>
     </div>
-    <button class="neon-btn" onclick="flipCoin()">Играть</button>
-    <div class="coin-container">
-      <div class="coin" id="coinFlip">
-        <div class="side head">👑</div>
-        <div class="side tail">🪙</div>
-      </div>
-    </div>
-    <div class="result" id="resultCoin"></div>
-    <div class="last-results">
-      Последние результаты:
-      <div id="lastResultsCoin"></div>
-    </div>
-  </div>
 
-  <!-- Игра: Блэкджек -->
-  <div id="blackjack" class="game-section">
-    <h2 class="neon-text">Блэкджек</h2>
-    <div class="balance-display">Баланс: <span id="balanceBJ">1000</span></div>
-    <input type="number" id="betAmountBJ" placeholder="Ставка" min="1"/>
-    <div>
-      <button class="neon-btn" onclick="startBlackjack()">Начать</button>
-      <button class="neon-btn" onclick="hit()">Ещё</button>
-      <button class="neon-btn" onclick="stand()">Хватит</button>
-    </div>
-    <div style="margin: 20px;">
-      <strong>Вы:</strong><br>
-      <div class="cards" id="playerCards"></div>
-      <div>Сумма: <span id="playerScore">0</span></div>
-    </div>
-    <div style="margin: 20px;">
-      <strong>Дилер:</strong><br>
-      <div class="cards" id="dealerCards"></div>
-      <div>Сумма: <span id="dealerScore">0</span></div>
-    </div>
-    <div class="result" id="resultBJ"></div>
-  </div>
+    <script>
+        // Хранилище пользователей
+        let users = JSON.parse(localStorage.getItem('casinoUsers')) || {};
+        let currentUser = null;
 
-  <!-- Игра: Слоты -->
-  <div id="slots" class="game-section">
-    <h2 class="neon-text">Слоты</h2>
-    <div class="balance-display">Баланс: <span id="balanceSlot">1000</span></div>
-    <input type="number" id="betAmountSlot" placeholder="Ставка" min="1"/>
-    <button class="neon-btn" onclick="playSlots()">Крутить</button>
-    <div class="slot-row" id="slotRow">
-      <div class="slot">?</div>
-      <div class="slot">?</div>
-      <div class="slot">?</div>
-    </div>
-    <div class="result" id="resultSlot"></div>
-  </div>
+        // Показать форму регистрации
+        function showRegister() {
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('register-form').style.display = 'block';
+        }
 
-  <div class="footer">© 2025 Neon Casino</div>
-</div>
+        // Показать форму входа
+        function showLogin() {
+            document.getElementById('register-form').style.display = 'none';
+            document.getElementById('login-form').style.display = 'block';
+        }
 
-<!-- Сайдбар (теперь справа) -->
-<div id="sidebar" class="sidebar">
-  <h2 class="neon-text">Меню</h2>
-  <button onclick="showPage('balance')">Баланс</button>
-  <button onclick="showPage('topup')">Пополнить</button>
-  <button onclick="showPage('coin')">Орёл или Решка</button>
-  <button onclick="showPage('blackjack')">Блэкджек</button>
-  <button onclick="showPage('slots')">Слоты</button>
-</div>
+        // Регистрация нового пользователя
+        function register() {
+            const username = document.getElementById('register-username').value.trim();
+            const password = document.getElementById('register-password').value;
+            const balance = parseInt(document.getElementById('register-start-balance').value) || 1000;
 
-<script>
-  let balance = 1000;
+            if (!username || !password) {
+                alert('Введите имя пользователя и пароль');
+                return;
+            }
 
-  function updateAllBalances() {
-    document.getElementById("balanceValue").textContent = balance;
-    document.getElementById("topUpBalanceDisplay").textContent = balance;
-    document.getElementById("balanceCoin").textContent = balance;
-    document.getElementById("balanceBJ").textContent = balance;
-    document.getElementById("balanceSlot").textContent = balance;
-  }
+            if (users[username]) {
+                alert('Пользователь с таким именем уже существует');
+                return;
+            }
 
-  function showPage(pageId) {
-    document.querySelectorAll(".game-section").forEach(el => el.classList.remove("active"));
-    document.getElementById(pageId).classList.add("active");
-    toggleMenu(false); // Закрыть меню после выбора
-  }
+            users[username] = {
+                password: password,
+                balance: balance
+            };
 
-  function toggleMenu(forceState = null) {
-    const sidebar = document.getElementById("sidebar");
+            localStorage.setItem('casinoUsers', JSON.stringify(users));
+            alert('Регистрация успешна! Теперь вы можете войти.');
+            showLogin();
+        }
 
-    if (window.innerWidth <= 768) {
-      if (forceState === true || (forceState === null && !sidebar.classList.contains("active"))) {
-        sidebar.classList.add("active");
-        sidebar.classList.remove("hidden");
-      } else {
-        sidebar.classList.remove("active");
-        sidebar.classList.add("hidden");
-      }
-    }
-  }
+        // Вход пользователя
+        function login() {
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
 
-  // === Coin Flip Game ===
-  let selectedSideCoin = null;
+            if (!users[username] || users[username].password !== password) {
+                alert('Неверное имя пользователя или пароль');
+                return;
+            }
 
-  function chooseSideCoin(side) {
-    selectedSideCoin = side;
-  }
+            currentUser = username;
+            document.getElementById('auth-forms').style.display = 'none';
+            document.getElementById('casino').style.display = 'block';
+            updateUserInfo();
+        }
 
-  function flipCoin() {
-    const resultDiv = document.getElementById("resultCoin");
-    const betInput = document.getElementById("betAmountCoin");
-    const bet = parseInt(betInput.value);
+        // Обновление информации о пользователе
+        function updateUserInfo() {
+            document.getElementById('username-display').textContent = currentUser;
+            document.getElementById('balance').textContent = users[currentUser].balance;
+        }
 
-    if (!selectedSideCoin) {
-      resultDiv.textContent = "Выберите сторону!";
-      return;
-    }
+        // Выход пользователя
+        function logout() {
+            currentUser = null;
+            document.getElementById('casino').style.display = 'none';
+            document.getElementById('auth-forms').style.display = 'block';
+            showLogin();
+        }
 
-    if (isNaN(bet) || bet <= 0 || bet > balance) {
-      resultDiv.textContent = "Введите корректную ставку!";
-      return;
-    }
+        // Игра в кости
+        function playDice() {
+            if (!currentUser) return;
 
-    const result = Math.random() < 0.5 ? "head" : "tail";
-    const win = result === selectedSideCoin;
-    const profit = win ? bet * 2 : -bet;
-    balance += profit;
+            const bet = parseInt(document.getElementById('bet-amount').value);
+            const playerNumber = parseInt(document.getElementById('player-number').value);
+            const user = users[currentUser];
 
-    resultDiv.textContent = `Выпало: ${result === 'head' ? 'Орёл 👑' : 'Решка 🪙'}, ${(win ? 'Вы выиграли!' : 'Вы проиграли...')} Ваш баланс: ${balance}`;
-    updateAllBalances();
-    selectedSideCoin = null;
-  }
+            if (isNaN(bet) || bet < 1) {
+                alert('Введите корректную ставку');
+                return;
+            }
 
-  // === Blackjack Game ===
-  const cardValues = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A'];
-  let playerCards = [];
-  let dealerCards = [];
-  let canHit = true;
+            if (bet > user.balance) {
+                alert('Недостаточно средств');
+                return;
+            }
 
-  function getRandomCard() {
-    return cardValues[Math.floor(Math.random() * cardValues.length)];
-  }
+            if (isNaN(playerNumber) || playerNumber < 1 || playerNumber > 6) {
+                alert('Выберите число от 1 до 6');
+                return;
+            }
 
-  function getCardValue(card) {
-    if (['J','Q','K'].includes(card)) return 10;
-    if (card === 'A') return 11;
-    return parseInt(card);
-  }
+            // Генерация случайного числа (1-6)
+            const diceRoll = Math.floor(Math.random() * 6) + 1;
+            const resultElement = document.getElementById('dice-result');
 
-  function calculateScore(cards) {
-    let score = 0;
-    let aces = 0;
-    cards.forEach(c => {
-      const val = getCardValue(c);
-      score += val;
-      if (c === 'A') aces++;
-    });
-    while (score > 21 && aces > 0) { score -= 10; aces--; }
-    return score;
-  }
+            if (diceRoll === playerNumber) {
+                const winAmount = bet * 5; // Выигрыш 5x ставки
+                user.balance += winAmount;
+                resultElement.innerHTML = `Выпало: ${diceRoll}. Вы угадали и выиграли $${winAmount}!`;
+            } else {
+                user.balance -= bet;
+                resultElement.innerHTML = `Выпало: ${diceRoll}. Вы не угадали и потеряли $${bet}.`;
+            }
 
-  function startBlackjack() {
-    playerCards = [getRandomCard(), getRandomCard()];
-    dealerCards = [getRandomCard(), getRandomCard()];
-    canHit = true;
-    updateBlackjackUI();
-  }
+            // Сохраняем обновленный баланс
+            localStorage.setItem('casinoUsers', JSON.stringify(users));
+            updateUserInfo();
+        }
 
-  function hit() {
-    if (!canHit) return;
-    playerCards.push(getRandomCard());
-    updateBlackjackUI();
-  }
-
-  function stand() {
-    canHit = false;
-    const betInput = document.getElementById("betAmountBJ");
-    const bet = parseInt(betInput.value);
-    if (isNaN(bet) || bet <= 0 || bet > balance) {
-      alert("Введите корректную ставку!");
-      return;
-    }
-
-    while (calculateScore(dealerCards) < 17) {
-      dealerCards.push(getRandomCard());
-    }
-
-    const playerScore = calculateScore(playerCards);
-    const dealerScore = calculateScore(dealerCards);
-    const resultDiv = document.getElementById("resultBJ");
-
-    if (playerScore > 21) {
-      balance -= bet;
-      resultDiv.textContent = `Перебор! Новый баланс: ${balance}`;
-    } else if (dealerScore > 21 || playerScore > dealerScore) {
-      balance += bet;
-      resultDiv.textContent = `Вы выиграли! Новый баланс: ${balance}`;
-    } else if (playerScore < dealerScore) {
-      balance -= bet;
-      resultDiv.textContent = `Вы проиграли. Новый баланс: ${balance}`;
-    } else {
-      resultDiv.textContent = `Ничья. Баланс не изменился.`;
-    }
-
-    updateAllBalances();
-  }
-
-  function updateBlackjackUI() {
-    const playerHTML = playerCards.map(c => `<div class="card">${c}</div>`).join('');
-    const dealerHTML = dealerCards.map(c => `<div class="card">${c}</div>`).join('');
-
-    document.getElementById("playerCards").innerHTML = playerHTML;
-    document.getElementById("dealerCards").innerHTML = dealerHTML;
-    document.getElementById("playerScore").textContent = calculateScore(playerCards);
-    document.getElementById("dealerScore").textContent = calculateScore(dealerCards);
-  }
-
-  // === Slots Game ===
-  const slotSymbols = ['🍒', '🍋', '🔔', '💎', '🍀', '7️⃣'];
-
-  function getRandomSymbol() {
-    const symbols = ['🍒', '🍋', '🔔', '🍀', '🍒', '🍋'];
-    return symbols[Math.floor(Math.random() * symbols.length)];
-  }
-
-  function playSlots() {
-    const betInput = document.getElementById("betAmountSlot");
-    const bet = parseInt(betInput.value);
-    const resultDiv = document.getElementById("resultSlot");
-
-    if (isNaN(bet) || bet <= 0 || bet > balance) {
-      alert("Введите корректную ставку!");
-      return;
-    }
-
-    const s1 = getRandomSymbol();
-    const s2 = getRandomSymbol();
-    const s3 = getRandomSymbol();
-
-    document.getElementById("slotRow").innerHTML = `
-      <div class="slot">${s1}</div>
-      <div class="slot">${s2}</div>
-      <div class="slot">${s3}</div>
-    `;
-
-    if (s1 === s2 && s2 === s3) {
-      balance += bet * 10;
-      resultDiv.textContent = `🎉 Джекпот! Три одинаковых символа!`;
-    } else if (s1 === s2 || s2 === s3 || s1 === s3) {
-      balance += bet * 2;
-      resultDiv.textContent = `🎯 Два одинаковых символа!`;
-    } else {
-      balance -= bet;
-      resultDiv.textContent = `❌ Повезёт в следующий раз.`;
-    }
-
-    updateAllBalances();
-  }
-
-  // === Пополнение баланса ===
-  function topUpBalance() {
-    const amount = parseInt(document.getElementById("topUpAmount").value);
-    const resultDiv = document.getElementById("topUpResult");
-
-    if (!isNaN(amount) && amount > 0) {
-      balance += amount;
-      updateAllBalances();
-      document.getElementById("topUpAmount").value = "";
-      resultDiv.textContent = `Баланс пополнен на ${amount}! Новый баланс: ${balance}`;
-    } else {
-      resultDiv.textContent = "Введите корректную сумму!";
-    }
-  }
-
-  updateAllBalances();
-</script>
-
+        // Проверяем, есть ли активный пользователь при загрузке страницы
+        window.onload = function() {
+            // В реальном приложении здесь была бы проверка сессии/токена
+            showLogin();
+        };
+    </script>
 </body>
 </html>
