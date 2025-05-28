@@ -673,389 +673,425 @@
         </div>
     </div>
     <div class="notification" id="notification"></div>
-    <script>
-        // Хранилище пользователей
-        let users = JSON.parse(localStorage.getItem('casinoUsers')) || {};
-        let currentUser = null;
-        let selectedDiceNumber = 3;
-        let gameHistory = JSON.parse(localStorage.getItem('gameHistory')) || {};
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js "></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js "></script>
 
-        window.onload = function () {
-            showLogin();
-            setupDiceNumbers();
-            setupSlots();
-            Object.keys(users).forEach(username => {
-                if (!gameHistory[username]) {
-                    gameHistory[username] = {
-                        dice: [],
-                        slots: []
-                    };
-                }
-            });
-        };
+<script>
+    // Конфиг Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyBxfwUv-1hQq_wYPrQviHqrb49OVRUaRGU",
+        authDomain: "cazic-7f172.firebaseapp.com",
+        projectId: "cazic-7f172",
+        storageBucket: "cazic-7f172.firebasestorage.app",
+        messagingSenderId: "440121668783",
+        appId: "1:440121668783:web:9d48a2ed805cfa3161905a",
+        measurementId: "G-Y0XNWB0F4N"
+    };
 
-        function showNotification(message, isError = false) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = 'notification show';
-            if (isError) notification.classList.add('error');
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
+    // Инициализация Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let users = {};
+    let currentUser = null;
+    let selectedDiceNumber = 3;
+    let gameHistory = {};
+
+    window.onload = function () {
+        showLogin();
+        setupDiceNumbers();
+        setupSlots();
+
+        // Загружаем пользователей из Firebase
+        db.ref('users').on('value', snapshot => {
+            users = snapshot.val() || {};
+            updateAdminPanel();
+        });
+
+        // Загружаем историю игр
+        db.ref('gameHistory').on('value', snapshot => {
+            gameHistory = snapshot.val() || {};
+        });
+    };
+
+    function showNotification(message, isError = false) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.className = 'notification show';
+        if (isError) notification.classList.add('error');
+        setTimeout(() => notification.classList.remove('show'), 3000);
+    }
+
+    function showRegister() {
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('register-form').style.display = 'block';
+    }
+
+    function showLogin() {
+        document.getElementById('register-form').style.display = 'none';
+        document.getElementById('login-form').style.display = 'block';
+    }
+
+    function register() {
+        const username = document.getElementById('register-username').value.trim();
+        const password = document.getElementById('register-password').value;
+        const balance = parseInt(document.getElementById('register-start-balance').value) || 1000;
+
+        if (!username || !password) {
+            showNotification('Введите имя пользователя и пароль', true);
+            return;
+        }
+        if (username.length < 3) {
+            showNotification('Имя пользователя должно быть не менее 3 символов', true);
+            return;
+        }
+        if (password.length < 4) {
+            showNotification('Пароль должен быть не менее 4 символов', true);
+            return;
         }
 
-        function showRegister() {
-            document.getElementById('login-form').style.display = 'none';
-            document.getElementById('register-form').style.display = 'block';
-        }
-
-        function showLogin() {
-            document.getElementById('register-form').style.display = 'none';
-            document.getElementById('login-form').style.display = 'block';
-        }
-
-        function register() {
-            const username = document.getElementById('register-username').value.trim();
-            const password = document.getElementById('register-password').value;
-            const balance = parseInt(document.getElementById('register-start-balance').value) || 1000;
-            if (!username || !password) {
-                showNotification('Введите имя пользователя и пароль', true);
-                return;
-            }
-            if (username.length < 3) {
-                showNotification('Имя пользователя должно быть не менее 3 символов', true);
-                return;
-            }
-            if (password.length < 4) {
-                showNotification('Пароль должен быть не менее 4 символов', true);
-                return;
-            }
-            if (users[username]) {
+        db.ref('users/' + username).once('value').then(snapshot => {
+            if (snapshot.exists()) {
                 showNotification('Пользователь с таким именем уже существует', true);
-                return;
-            }
-            users[username] = {
-                password: password,
-                balance: balance
-            };
-            gameHistory[username] = {
-                dice: [],
-                slots: []
-            };
-            localStorage.setItem('casinoUsers', JSON.stringify(users));
-            localStorage.setItem('gameHistory', JSON.stringify(gameHistory));
-            showNotification('Регистрация успешна! Теперь вы можете войти.');
-            showLogin();
-        }
-
-        function login() {
-            const username = document.getElementById('login-username').value.trim();
-            const password = document.getElementById('login-password').value;
-            if (!users[username] || users[username].password !== password) {
-                showNotification('Неверное имя пользователя или пароль', true);
-                return;
-            }
-            currentUser = username;
-            document.getElementById('auth-forms').style.display = 'none';
-            document.getElementById('casino').style.display = 'block';
-            updateUserInfo();
-            loadGameHistory();
-            showNotification(`Добро пожаловать, ${username}!`);
-        }
-
-        function updateUserInfo() {
-            document.getElementById('username-display').textContent = currentUser;
-            document.getElementById('balance').textContent = users[currentUser].balance;
-
-            const adminBtn = document.getElementById('admin-button');
-            if (currentUser === 'EsAzazel') {
-                adminBtn.style.display = 'inline-block';
-                updateAdminPanel(); // Обновляем список при открытии
             } else {
-                adminBtn.style.display = 'none';
+                db.ref('users/' + username).set({
+                    password,
+                    balance
+                });
+
+                db.ref('gameHistory/' + username).set({
+                    dice: [],
+                    slots: []
+                });
+
+                showNotification('Регистрация успешна! Теперь вы можете войти.');
+                showLogin();
             }
-        }
+        });
+    }
 
-        function logout() {
-            currentUser = null;
-            document.getElementById('casino').style.display = 'none';
-            document.getElementById('auth-forms').style.display = 'block';
-            showLogin();
-        }
+    function login() {
+        const username = document.getElementById('login-username').value.trim();
+        const password = document.getElementById('login-password').value;
 
-        function switchGame(game) {
-            document.querySelectorAll('.game').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.game-tab').forEach(el => el.classList.remove('active'));
-            document.getElementById(`${game}-game`).classList.add('active');
-            const tabs = document.querySelectorAll('.game-tab');
-            for (let tab of tabs) {
-                if (tab.textContent.toLowerCase().includes(game)) {
-                    tab.classList.add('active');
-                    break;
-                }
-            }
-        }
-
-        function setBetAmount(amount, game) {
-            document.getElementById(`${game}-bet-amount`).value = amount;
-        }
-
-        function setMaxBet(game) {
-            const maxBet = users[currentUser].balance;
-            document.getElementById(`${game}-bet-amount`).value = maxBet;
-        }
-
-        function loadGameHistory() {
-            if (!currentUser || !gameHistory[currentUser]) return;
-            const diceHistory = gameHistory[currentUser].dice.slice(-10).reverse();
-            const diceHistoryEl = document.getElementById('dice-history');
-            diceHistoryEl.innerHTML = '';
-            diceHistory.forEach(item => {
-                const historyItem = document.createElement('div');
-                historyItem.className = `history-item ${item.win ? 'history-win' : 'history-lose'}`;
-                historyItem.innerHTML = `
-                    <span>${item.type}: ${item.number} (${item.result})</span>
-                    <span>${item.win ? '+' : '-'}${item.amount}</span>
-                `;
-                diceHistoryEl.appendChild(historyItem);
-            });
-
-            const slotsHistory = gameHistory[currentUser].slots.slice(-10).reverse();
-            const slotsHistoryEl = document.getElementById('slots-history');
-            slotsHistoryEl.innerHTML = '';
-            slotsHistory.forEach(item => {
-                const historyItem = document.createElement('div');
-                historyItem.className = `history-item ${item.win ? 'history-win' : 'history-lose'}`;
-                historyItem.innerHTML = `
-                    <span>${item.symbols.join(' ')}</span>
-                    <span>${item.win ? '+' : '-'}${item.amount}</span>
-                `;
-                slotsHistoryEl.appendChild(historyItem);
-            });
-        }
-
-        function addToHistory(game, data) {
-            if (!currentUser) return;
-            gameHistory[currentUser][game].push(data);
-            if (gameHistory[currentUser][game].length > 50) {
-                gameHistory[currentUser][game].shift();
-            }
-            localStorage.setItem('gameHistory', JSON.stringify(gameHistory));
-            loadGameHistory();
-        }
-
-        function setupDiceNumbers() {
-            selectDiceNumber(3);
-        }
-
-        function selectDiceNumber(number) {
-            selectedDiceNumber = number;
-            document.querySelectorAll('.dice-number').forEach(el => {
-                el.classList.remove('selected');
-                if (parseInt(el.textContent) === number) {
-                    el.classList.add('selected');
-                }
-            });
-        }
-
-        function playDice() {
-            if (!currentUser) return;
-            const bet = parseInt(document.getElementById('dice-bet-amount').value);
-            const user = users[currentUser];
-            if (isNaN(bet) || bet < 1) {
-                showNotification('Введите корректную ставку', true);
-                return;
-            }
-            if (bet > user.balance) {
-                showNotification('Недостаточно средств', true);
-                return;
-            }
-            if (!selectedDiceNumber) {
-                showNotification('Выберите число от 1 до 6', true);
-                return;
-            }
-            const diceRollEl = document.getElementById('dice-roll');
-            diceRollEl.textContent = '?';
-            diceRollEl.classList.add('dice-rolling');
-            const resultEl = document.getElementById('dice-result');
-            resultEl.classList.remove('show');
-            resultEl.className = 'game-result';
-            setTimeout(() => {
-                const diceRoll = Math.floor(Math.random() * 6) + 1;
-                diceRollEl.classList.remove('dice-rolling');
-                diceRollEl.textContent = diceRoll;
-                if (diceRoll === selectedDiceNumber) {
-                    const winAmount = bet * 5;
-                    user.balance += winAmount;
-                    resultEl.textContent = `Выпало: ${diceRoll}. Вы угадали и выиграли $${winAmount}!`;
-                    resultEl.classList.add('show', 'result-win');
-                    addToHistory('dice', {
-                        type: 'Кости',
-                        number: selectedDiceNumber,
-                        result: diceRoll,
-                        amount: winAmount,
-                        win: true,
-                        timestamp: new Date().toLocaleString()
-                    });
-                } else {
-                    user.balance -= bet;
-                    resultEl.textContent = `Выпало: ${diceRoll}. Вы не угадали и потеряли $${bet}.`;
-                    resultEl.classList.add('show', 'result-lose');
-                    addToHistory('dice', {
-                        type: 'Кости',
-                        number: selectedDiceNumber,
-                        result: diceRoll,
-                        amount: bet,
-                        win: false,
-                        timestamp: new Date().toLocaleString()
-                    });
-                }
-                localStorage.setItem('casinoUsers', JSON.stringify(users));
+        db.ref('users/' + username).once('value').then(snapshot => {
+            const user = snapshot.val();
+            if (user && user.password === password) {
+                currentUser = username;
+                document.getElementById('auth-forms').style.display = 'none';
+                document.getElementById('casino').style.display = 'block';
                 updateUserInfo();
-            }, 1000);
-        }
-
-        const slotSymbols = ['🍒', '🍋', '🍊', '🍇', '🍉', '7️⃣', '🔔', '💰'];
-
-        function setupSlots() {
-            const reels = document.querySelectorAll('.slots-reel');
-            reels.forEach(reel => {
-                reel.innerHTML = '';
-                for (let i = 0; i < 5; i++) {
-                    const randomSymbol = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
-                    const symbol = document.createElement('div');
-                    symbol.className = 'slots-symbol';
-                    symbol.textContent = randomSymbol;
-                    symbol.style.transform = `translateY(${i * 120}px)`;
-                    reel.appendChild(symbol);
-                }
-            });
-        }
-
-        function playSlots() {
-            if (!currentUser) return;
-            const bet = parseInt(document.getElementById('slots-bet-amount').value);
-            const user = users[currentUser];
-            if (isNaN(bet) || bet < 1) {
-                showNotification('Введите корректную ставку', true);
-                return;
+                loadGameHistory();
+                showNotification(`Добро пожаловать, ${username}!`);
+            } else {
+                showNotification('Неверное имя пользователя или пароль', true);
             }
-            if (bet > user.balance) {
-                showNotification('Недостаточно средств', true);
-                return;
+        });
+    }
+
+    function updateUserInfo() {
+        document.getElementById('username-display').textContent = currentUser;
+        document.getElementById('balance').textContent = users[currentUser]?.balance || 0;
+
+        const adminBtn = document.getElementById('admin-button');
+        if (currentUser === 'EsAzazel') {
+            adminBtn.style.display = 'inline-block';
+            updateAdminPanel();
+        } else {
+            adminBtn.style.display = 'none';
+        }
+    }
+
+    function logout() {
+        currentUser = null;
+        document.getElementById('casino').style.display = 'none';
+        document.getElementById('auth-forms').style.display = 'block';
+        showLogin();
+    }
+
+    function switchGame(game) {
+        document.querySelectorAll('.game').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.game-tab').forEach(el => el.classList.remove('active'));
+        document.getElementById(`${game}-game`).classList.add('active');
+        const tabs = document.querySelectorAll('.game-tab');
+        for (let tab of tabs) {
+            if (tab.textContent.toLowerCase().includes(game)) {
+                tab.classList.add('active');
+                break;
             }
-            const reels = document.querySelectorAll('.slots-reel');
-            reels.forEach(reel => reel.classList.add('slots-spinning'));
-            const resultEl = document.getElementById('slots-result');
-            resultEl.classList.remove('show');
-            resultEl.className = 'game-result';
-            setTimeout(() => stopSlotReel(reels[0], 0), 1000);
-            setTimeout(() => stopSlotReel(reels[1], 1), 1500);
-            setTimeout(() => stopSlotReel(reels[2], 2), 2000);
-            setTimeout(() => checkSlotsResult(bet), 2500);
+        }
+    }
+
+    function setBetAmount(amount, game) {
+        document.getElementById(`${game}-bet-amount`).value = amount;
+    }
+
+    function setMaxBet(game) {
+        document.getElementById(`${game}-bet-amount`).value = users[currentUser].balance;
+    }
+
+    function loadGameHistory() {
+        if (!currentUser || !gameHistory[currentUser]) return;
+        const diceHistory = (gameHistory[currentUser].dice || []).slice(-10).reverse();
+        const diceHistoryEl = document.getElementById('dice-history');
+        diceHistoryEl.innerHTML = '';
+        diceHistory.forEach(item => {
+            const historyItem = document.createElement('div');
+            historyItem.className = `history-item ${item.win ? 'history-win' : 'history-lose'}`;
+            historyItem.innerHTML = `
+                <span>${item.type}: ${item.number} (${item.result})</span>
+                <span>${item.win ? '+' : '-'}${item.amount}</span>
+            `;
+            diceHistoryEl.appendChild(historyItem);
+        });
+
+        const slotsHistory = (gameHistory[currentUser].slots || []).slice(-10).reverse();
+        const slotsHistoryEl = document.getElementById('slots-history');
+        slotsHistoryEl.innerHTML = '';
+        slotsHistory.forEach(item => {
+            const historyItem = document.createElement('div');
+            historyItem.className = `history-item ${item.win ? 'history-win' : 'history-lose'}`;
+            historyItem.innerHTML = `
+                <span>${item.symbols.join(' ')}</span>
+                <span>${item.win ? '+' : '-'}${item.amount}</span>
+            `;
+            slotsHistoryEl.appendChild(historyItem);
+        });
+    }
+
+    function addToHistory(game, data) {
+        if (!currentUser) return;
+        if (!gameHistory[currentUser]) gameHistory[currentUser] = { dice: [], slots: [] };
+        gameHistory[currentUser][game].push(data);
+        if (gameHistory[currentUser][game].length > 50) gameHistory[currentUser][game].shift();
+        db.ref('gameHistory/' + currentUser).set(gameHistory[currentUser]);
+        loadGameHistory();
+    }
+
+    function setupDiceNumbers() {
+        selectDiceNumber(3);
+    }
+
+    function selectDiceNumber(number) {
+        selectedDiceNumber = number;
+        document.querySelectorAll('.dice-number').forEach(el => {
+            el.classList.remove('selected');
+            if (parseInt(el.textContent) === number) {
+                el.classList.add('selected');
+            }
+        });
+    }
+
+    function playDice() {
+        if (!currentUser) return;
+        const bet = parseInt(document.getElementById('dice-bet-amount').value);
+        const user = users[currentUser];
+        if (isNaN(bet) || bet < 1) {
+            showNotification('Введите корректную ставку', true);
+            return;
+        }
+        if (bet > user.balance) {
+            showNotification('Недостаточно средств', true);
+            return;
+        }
+        if (!selectedDiceNumber) {
+            showNotification('Выберите число от 1 до 6', true);
+            return;
         }
 
-        function stopSlotReel(reel, index) {
-            reel.classList.remove('slots-spinning');
-            const randomSymbol = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
-            const symbols = reel.querySelectorAll('.slots-symbol');
-            symbols.forEach((symbol, i) => {
-                if (i === 2) {
-                    symbol.textContent = randomSymbol;
-                } else {
-                    symbol.textContent = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
-                }
-                symbol.style.transform = `translateY(${(i - 2) * 120}px)`;
-            });
-        }
+        const diceRollEl = document.getElementById('dice-roll');
+        diceRollEl.textContent = '?';
+        diceRollEl.classList.add('dice-rolling');
 
-        function checkSlotsResult(bet) {
-            const reels = document.querySelectorAll('.slots-reel');
-            const symbols = [];
-            reels.forEach(reel => {
-                const centerSymbol = reel.querySelectorAll('.slots-symbol')[2];
-                symbols.push(centerSymbol.textContent);
-            });
-            let winAmount = 0;
-            let winMessage = '';
-            if (symbols[0] === symbols[1] && symbols[1] === symbols[2]) {
-                if (symbols[0] === '7️⃣') {
-                    winAmount = bet * 10;
-                    winMessage = 'ДЖЕКПОТ! Три 7️⃣!';
-                } else if (symbols[0] === '💰') {
-                    winAmount = bet * 5;
-                    winMessage = 'Отлично! Три 💰!';
-                } else {
-                    winAmount = bet * 3;
-                    winMessage = `Хорошо! Три ${symbols[0]}!`;
-                }
-            } else if (symbols[0] === symbols[1] || symbols[1] === symbols[2] || symbols[0] === symbols[2]) {
-                winAmount = bet;
-                winMessage = 'Не плохо! Два одинаковых символа!';
-            }
-            const user = users[currentUser];
-            const resultEl = document.getElementById('slots-result');
-            if (winAmount > 0) {
+        const resultEl = document.getElementById('dice-result');
+        resultEl.classList.remove('show');
+        resultEl.className = 'game-result';
+
+        setTimeout(() => {
+            const diceRoll = Math.floor(Math.random() * 6) + 1;
+            diceRollEl.classList.remove('dice-rolling');
+            diceRollEl.textContent = diceRoll;
+
+            if (diceRoll === selectedDiceNumber) {
+                const winAmount = bet * 5;
                 user.balance += winAmount;
-                resultEl.textContent = `${winMessage} Вы выиграли $${winAmount}!`;
+                resultEl.textContent = `Выпало: ${diceRoll}. Вы угадали и выиграли $${winAmount}!`;
                 resultEl.classList.add('show', 'result-win');
-                addToHistory('slots', {
-                    symbols: symbols,
+                addToHistory('dice', {
+                    type: 'Кости',
+                    number: selectedDiceNumber,
+                    result: diceRoll,
                     amount: winAmount,
-                    win: true,
-                    timestamp: new Date().toLocaleString()
+                    win: true
                 });
             } else {
                 user.balance -= bet;
-                resultEl.textContent = `${symbols.join(' ')}. Вы проиграли $${bet}.`;
+                resultEl.textContent = `Выпало: ${diceRoll}. Вы не угадали и потеряли $${bet}.`;
                 resultEl.classList.add('show', 'result-lose');
-                addToHistory('slots', {
-                    symbols: symbols,
+                addToHistory('dice', {
+                    type: 'Кости',
+                    number: selectedDiceNumber,
+                    result: diceRoll,
                     amount: bet,
-                    win: false,
-                    timestamp: new Date().toLocaleString()
+                    win: false
                 });
             }
-            localStorage.setItem('casinoUsers', JSON.stringify(users));
+
+            db.ref('users/' + currentUser).update({ balance: user.balance });
             updateUserInfo();
+        }, 1000);
+    }
+
+    const slotSymbols = ['🍒', '🍋', '🍊', '🍇', '🍉', '7️⃣', '🔔', '💰'];
+
+    function setupSlots() {
+        const reels = document.querySelectorAll('.slots-reel');
+        reels.forEach(reel => {
+            reel.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                const randomSymbol = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
+                const symbol = document.createElement('div');
+                symbol.className = 'slots-symbol';
+                symbol.textContent = randomSymbol;
+                symbol.style.transform = `translateY(${i * 120}px)`;
+                reel.appendChild(symbol);
+            }
+        });
+    }
+
+    function playSlots() {
+        if (!currentUser) return;
+        const bet = parseInt(document.getElementById('slots-bet-amount').value);
+        const user = users[currentUser];
+        if (isNaN(bet) || bet < 1) {
+            showNotification('Введите корректную ставку', true);
+            return;
+        }
+        if (bet > user.balance) {
+            showNotification('Недостаточно средств', true);
+            return;
         }
 
-        // Админ-панель
-        function toggleAdminPanel() {
-            const panel = document.getElementById('admin-panel');
-            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        const reels = document.querySelectorAll('.slots-reel');
+        reels.forEach(reel => reel.classList.add('slots-spinning'));
+
+        const resultEl = document.getElementById('slots-result');
+        resultEl.classList.remove('show');
+        resultEl.className = 'game-result';
+
+        setTimeout(() => stopSlotReel(reels[0], 0), 1000);
+        setTimeout(() => stopSlotReel(reels[1], 1), 1500);
+        setTimeout(() => stopSlotReel(reels[2], 2), 2000);
+        setTimeout(() => checkSlotsResult(bet), 2500);
+    }
+
+    function stopSlotReel(reel, index) {
+        reel.classList.remove('slots-spinning');
+        const randomSymbol = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
+        const symbols = reel.querySelectorAll('.slots-symbol');
+        symbols.forEach((symbol, i) => {
+            if (i === 2) {
+                symbol.textContent = randomSymbol;
+            } else {
+                symbol.textContent = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
+            }
+            symbol.style.transform = `translateY(${(i - 2) * 120}px)`;
+        });
+    }
+
+    function checkSlotsResult(bet) {
+        const reels = document.querySelectorAll('.slots-reel');
+        const symbols = [];
+        reels.forEach(reel => {
+            const centerSymbol = reel.querySelectorAll('.slots-symbol')[2];
+            symbols.push(centerSymbol.textContent);
+        });
+
+        let winAmount = 0;
+        let winMessage = '';
+
+        if (symbols[0] === symbols[1] && symbols[1] === symbols[2]) {
+            if (symbols[0] === '7️⃣') {
+                winAmount = bet * 10;
+                winMessage = 'ДЖЕКПОТ! Три 7️⃣!';
+            } else if (symbols[0] === '💰') {
+                winAmount = bet * 5;
+                winMessage = 'Отлично! Три 💰!';
+            } else {
+                winAmount = bet * 3;
+                winMessage = `Хорошо! Три ${symbols[0]}!`;
+            }
+        } else if (symbols[0] === symbols[1] || symbols[1] === symbols[2] || symbols[0] === symbols[2]) {
+            winAmount = bet;
+            winMessage = 'Не плохо! Два одинаковых символа!';
         }
 
-        function updateAdminPanel() {
-            const userListDiv = document.getElementById('users-list');
-            userListDiv.innerHTML = '';
-            Object.keys(users).forEach(username => {
-                const user = users[username];
-                const userDiv = document.createElement('div');
-                userDiv.className = 'admin-user-row';
-                userDiv.innerHTML = `
-                    <span><strong>${username}</strong>: $${user.balance}</span>
-                    <input type="number" id="balance-${username}" value="${user.balance}" style="width: 100px;">
-                    <button class="btn-primary" onclick="updateUserBalance('${username}')">Обновить</button>
-                `;
-                userListDiv.appendChild(userDiv);
+        const user = users[currentUser];
+        const resultEl = document.getElementById('slots-result');
+
+        if (winAmount > 0) {
+            user.balance += winAmount;
+            resultEl.textContent = `${winMessage} Вы выиграли $${winAmount}!`;
+            resultEl.classList.add('show', 'result-win');
+            addToHistory('slots', {
+                symbols: symbols,
+                amount: winAmount,
+                win: true
+            });
+        } else {
+            user.balance -= bet;
+            resultEl.textContent = `${symbols.join(' ')} — Вы проиграли $${bet}.`;
+            resultEl.classList.add('show', 'result-lose');
+            addToHistory('slots', {
+                symbols: symbols,
+                amount: bet,
+                win: false
             });
         }
 
-        function updateUserBalance(username) {
-            const input = document.getElementById(`balance-${username}`);
-            const newBalance = parseInt(input.value);
-            if (!isNaN(newBalance)) {
-                users[username].balance = newBalance;
-                localStorage.setItem('casinoUsers', JSON.stringify(users));
-                updateUserInfo();
-                updateAdminPanel();
-                showNotification(`Баланс ${username} обновлён`);
-            } else {
-                showNotification('Введите корректное число', true);
-            }
-        }
-    </script>
-</body>
+        db.ref('users/' + currentUser).update({ balance: user.balance });
+        updateUserInfo();
+    }
 
-</html>
+    // Админ-панель
+    function toggleAdminPanel() {
+        const panel = document.getElementById('admin-panel');
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function updateAdminPanel() {
+        const userListDiv = document.getElementById('users-list');
+        userListDiv.innerHTML = '';
+        Object.keys(users).forEach(username => {
+            const user = users[username];
+            const userDiv = document.createElement('div');
+            userDiv.className = 'admin-user-row';
+            userDiv.innerHTML = `
+                <span><strong>${username}</strong>: $${user.balance}</span>
+                <input type="number" id="balance-${username}" value="${user.balance}" style="width: 100px;">
+                <button class="btn-primary" onclick="updateUserBalance('${username}')">Обновить</button>
+                <button class="btn-danger" onclick="deleteUser('${username}')">Удалить</button>
+            `;
+            userListDiv.appendChild(userDiv);
+        });
+    }
+
+    function updateUserBalance(username) {
+        const input = document.getElementById(`balance-${username}`);
+        const newBalance = parseInt(input.value);
+        if (!isNaN(newBalance)) {
+            db.ref('users/' + username).update({ balance: newBalance });
+            showNotification(`Баланс ${username} обновлён`);
+        } else {
+            showNotification('Введите корректное число', true);
+        }
+    }
+
+    function deleteUser(username) {
+        if (!confirm(`Вы уверены, что хотите удалить аккаунт "${username}"?`)) return;
+
+        db.ref('users/' + username).remove();
+        db.ref('gameHistory/' + username).remove();
+        showNotification(`Аккаунт "${username}" удален`);
+    }
+</script>
