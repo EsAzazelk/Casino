@@ -464,6 +464,7 @@
                 <p class="form-link" onclick="showLogin()">Уже есть аккаунт? Войдите</p>
             </div>
         </div>
+
         <div id="casino" style="display: none;">
             <div class="user-info">
                 <div class="balance">
@@ -482,7 +483,7 @@
                 <h2>Пополнение баланса</h2>
                 <div class="input-group">
                     <label for="deposit-amount">Сумма</label>
-                    <input type="number" id="deposit-amount" placeholder="Введите сумму" min="1">
+                    <input type="text" id="deposit-amount" placeholder="Введите сумму">
                 </div>
                 <button class="btn-primary" onclick="depositBalance()">Пополнить</button>
                 <button class="btn-danger" onclick="hideDeposit()">Отмена</button>
@@ -493,6 +494,7 @@
                 <div class="game-tab" onclick="switchGame('slots')">Слоты</div>
                 <div class="game-tab" onclick="switchGame('coin')">Монетка</div>
             </div>
+
             <div class="game-container">
 
                 <!-- Dice Game -->
@@ -598,12 +600,10 @@
         let selectedCoinSide = null;
         let gameHistory = JSON.parse(localStorage.getItem('gameHistory')) || {};
 
-        // Инициализация при загрузке
         window.onload = function () {
             showLogin();
             setupDiceNumbers();
             setupSlots();
-            // Восстановление истории для каждого пользователя
             Object.keys(users).forEach(username => {
                 if (!gameHistory[username]) {
                     gameHistory[username] = {
@@ -615,7 +615,6 @@
             });
         };
 
-        // Показать уведомление
         function showNotification(message, isError = false) {
             const notification = document.getElementById('notification');
             notification.textContent = message;
@@ -626,44 +625,33 @@
             }, 3000);
         }
 
-        // Показать форму регистрации
         function showRegister() {
             document.getElementById('login-form').style.display = 'none';
             document.getElementById('register-form').style.display = 'block';
         }
 
-        // Показать форму входа
         function showLogin() {
             document.getElementById('register-form').style.display = 'none';
             document.getElementById('login-form').style.display = 'block';
         }
 
-        // Регистрация нового пользователя
         function register() {
             const username = document.getElementById('register-username').value.trim();
             const password = document.getElementById('register-password').value;
             const balance = parseInt(document.getElementById('register-start-balance').value) || 1000;
             if (!username || !password) {
-                showNotification('Введите имя пользователя и пароль', true);
-                return;
-            }
-            if (username.length < 3) {
-                showNotification('Имя пользователя должно быть не менее 3 символов', true);
-                return;
-            }
-            if (password.length < 4) {
-                showNotification('Пароль должен быть не менее 4 символов', true);
+                showNotification("Введите имя пользователя и пароль", true);
                 return;
             }
             if (users[username]) {
-                showNotification('Пользователь с таким именем уже существует', true);
+                showNotification("Пользователь с таким именем уже существует", true);
                 return;
             }
             users[username] = {
                 password: password,
-                balance: balance
+                balance: balance,
+                unlimitedBalance: false
             };
-            // Инициализация истории для нового пользователя
             gameHistory[username] = {
                 dice: [],
                 slots: [],
@@ -671,16 +659,15 @@
             };
             localStorage.setItem('casinoUsers', JSON.stringify(users));
             localStorage.setItem('gameHistory', JSON.stringify(gameHistory));
-            showNotification('Регистрация успешна! Теперь вы можете войти.');
+            showNotification("Регистрация успешна! Теперь вы можете войти.");
             showLogin();
         }
 
-        // Вход пользователя
         function login() {
             const username = document.getElementById('login-username').value.trim();
             const password = document.getElementById('login-password').value;
             if (!users[username] || users[username].password !== password) {
-                showNotification('Неверное имя пользователя или пароль', true);
+                showNotification("Неверное имя пользователя или пароль", true);
                 return;
             }
             currentUser = username;
@@ -691,13 +678,17 @@
             showNotification(`Добро пожаловать, ${username}!`);
         }
 
-        // Обновление информации о пользователе
         function updateUserInfo() {
             document.getElementById('username-display').textContent = currentUser;
-            document.getElementById('balance').textContent = users[currentUser].balance;
+            const user = users[currentUser];
+            const balanceEl = document.getElementById('balance');
+            if (user.unlimitedBalance) {
+                balanceEl.textContent = '∞';
+            } else {
+                balanceEl.textContent = user.balance;
+            }
         }
 
-        // Выход пользователя
         function logout() {
             currentUser = null;
             document.getElementById('casino').style.display = 'none';
@@ -705,19 +696,10 @@
             showLogin();
         }
 
-        // Переключение между играми
         function switchGame(game) {
-            // Скрыть все игры
-            document.querySelectorAll('.game').forEach(el => {
-                el.classList.remove('active');
-            });
-            // Убрать активный класс у всех вкладок
-            document.querySelectorAll('.game-tab').forEach(el => {
-                el.classList.remove('active');
-            });
-            // Показать выбранную игру
+            document.querySelectorAll('.game').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.game-tab').forEach(el => el.classList.remove('active'));
             document.getElementById(`${game}-game`).classList.add('active');
-            // Сделать активной выбранную вкладку
             const tabs = document.querySelectorAll('.game-tab');
             for (let tab of tabs) {
                 if (tab.textContent.toLowerCase().includes(game)) {
@@ -727,22 +709,22 @@
             }
         }
 
-        // Установка суммы ставки
         function setBetAmount(amount, game) {
             document.getElementById(`${game}-bet-amount`).value = amount;
         }
 
-        // Установка максимальной ставки
         function setMaxBet(game) {
-            const maxBet = users[currentUser].balance;
-            document.getElementById(`${game}-bet-amount`).value = maxBet;
+            const user = users[currentUser];
+            if (user.unlimitedBalance) {
+                document.getElementById(`${game}-bet-amount`).value = 1000000;
+            } else {
+                document.getElementById(`${game}-bet-amount`).value = user.balance;
+            }
         }
 
-        // Загрузка истории игр
         function loadGameHistory() {
             if (!currentUser || !gameHistory[currentUser]) return;
 
-            // История для костей
             const diceHistory = gameHistory[currentUser].dice.slice(-10).reverse();
             const diceHistoryEl = document.getElementById('dice-history');
             diceHistoryEl.innerHTML = '';
@@ -756,7 +738,6 @@
                 diceHistoryEl.appendChild(historyItem);
             });
 
-            // История для слотов
             const slotsHistory = gameHistory[currentUser].slots.slice(-10).reverse();
             const slotsHistoryEl = document.getElementById('slots-history');
             slotsHistoryEl.innerHTML = '';
@@ -770,7 +751,6 @@
                 slotsHistoryEl.appendChild(historyItem);
             });
 
-            // История для монетки
             const coinHistory = gameHistory[currentUser].coin.slice(-10).reverse();
             const coinHistoryEl = document.getElementById('coin-history');
             coinHistoryEl.innerHTML = '';
@@ -785,7 +765,6 @@
             });
         }
 
-        // Добавление записи в историю
         function addToHistory(game, data) {
             if (!currentUser) return;
             gameHistory[currentUser][game].push(data);
@@ -796,7 +775,6 @@
             loadGameHistory();
         }
 
-        // ============ Игра в кости ============
         function setupDiceNumbers() {
             selectDiceNumber(3);
         }
@@ -819,7 +797,7 @@
                 showNotification('Введите корректную ставку', true);
                 return;
             }
-            if (bet > user.balance) {
+            if (!user.unlimitedBalance && bet > user.balance) {
                 showNotification('Недостаточно средств', true);
                 return;
             }
@@ -827,63 +805,52 @@
                 showNotification('Выберите число от 1 до 6', true);
                 return;
             }
-            // Анимация броска
+
             const diceRollEl = document.getElementById('dice-roll');
             diceRollEl.textContent = '?';
             diceRollEl.classList.add('dice-rolling');
-            // Скрываем предыдущий результат
             const resultEl = document.getElementById('dice-result');
             resultEl.classList.remove('show');
-            resultEl.className = 'game-result';
-            // Задержка для анимации
+
             setTimeout(() => {
-                // Генерация случайного числа (1-6)
                 const diceRoll = Math.floor(Math.random() * 6) + 1;
                 diceRollEl.classList.remove('dice-rolling');
                 diceRollEl.textContent = diceRoll;
                 if (diceRoll === selectedDiceNumber) {
-                    const winAmount = bet * 5; // Выигрыш 5x ставки
-                    user.balance += winAmount;
+                    const winAmount = bet * 5;
+                    if (!user.unlimitedBalance) user.balance += winAmount;
                     resultEl.textContent = `Выпало: ${diceRoll}. Вы угадали и выиграли $${winAmount}!`;
                     resultEl.classList.add('show', 'result-win');
-                    // Добавляем в историю
                     addToHistory('dice', {
                         type: 'Кости',
                         number: selectedDiceNumber,
                         result: diceRoll,
                         amount: winAmount,
-                        win: true,
-                        timestamp: new Date().toLocaleString()
+                        win: true
                     });
                 } else {
-                    user.balance -= bet;
+                    if (!user.unlimitedBalance) user.balance -= bet;
                     resultEl.textContent = `Выпало: ${diceRoll}. Вы не угадали и потеряли $${bet}.`;
                     resultEl.classList.add('show', 'result-lose');
-                    // Добавляем в историю
                     addToHistory('dice', {
                         type: 'Кости',
                         number: selectedDiceNumber,
                         result: diceRoll,
                         amount: bet,
-                        win: false,
-                        timestamp: new Date().toLocaleString()
+                        win: false
                     });
                 }
-                // Сохраняем обновленный баланс
                 localStorage.setItem('casinoUsers', JSON.stringify(users));
                 updateUserInfo();
             }, 1000);
         }
 
-        // ============ Игровые автоматы ============
         const slotSymbols = ['🍒', '🍋', '🍊', '🍇', '🍉', '7️⃣', '🔔', '💰'];
 
         function setupSlots() {
-            // Инициализация барабанов
             const reels = document.querySelectorAll('.slots-reel');
             reels.forEach(reel => {
                 reel.innerHTML = '';
-                // Добавляем несколько символов для эффекта бесконечности
                 for (let i = 0; i < 5; i++) {
                     const randomSymbol = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
                     const symbol = document.createElement('div');
@@ -903,35 +870,28 @@
                 showNotification('Введите корректную ставку', true);
                 return;
             }
-            if (bet > user.balance) {
+            if (!user.unlimitedBalance && bet > user.balance) {
                 showNotification('Недостаточно средств', true);
                 return;
             }
-            // Анимация вращения
+
             const reels = document.querySelectorAll('.slots-reel');
-            reels.forEach(reel => {
-                reel.classList.add('slots-spinning');
-            });
-            // Скрываем предыдущий результат
+            reels.forEach(reel => reel.classList.add('slots-spinning'));
+
             const resultEl = document.getElementById('slots-result');
             resultEl.classList.remove('show');
-            resultEl.className = 'game-result';
-            // Остановка барабанов с задержкой
+
             setTimeout(() => stopSlotReel(reels[0], 0), 1000);
             setTimeout(() => stopSlotReel(reels[1], 1), 1500);
             setTimeout(() => stopSlotReel(reels[2], 2), 2000);
-            // Проверка результата после остановки всех барабанов
             setTimeout(() => checkSlotsResult(bet), 2500);
         }
 
         function stopSlotReel(reel, index) {
             reel.classList.remove('slots-spinning');
-            // Выбираем случайный символ для остановки
             const randomSymbol = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
-            // Обновляем символы в барабане
             const symbols = reel.querySelectorAll('.slots-symbol');
             symbols.forEach((symbol, i) => {
-                // Смещаем символы так, чтобы центральный был выигрышным
                 if (i === 2) {
                     symbol.textContent = randomSymbol;
                 } else {
@@ -944,63 +904,53 @@
         function checkSlotsResult(bet) {
             const reels = document.querySelectorAll('.slots-reel');
             const symbols = [];
-            // Получаем центральные символы каждого барабана
             reels.forEach(reel => {
                 const centerSymbol = reel.querySelectorAll('.slots-symbol')[2];
                 symbols.push(centerSymbol.textContent);
             });
-            // Проверяем комбинации
+
             let winAmount = 0;
             let winMessage = '';
-            // Проверка на три одинаковых символа
             if (symbols[0] === symbols[1] && symbols[1] === symbols[2]) {
                 if (symbols[0] === '7️⃣') {
-                    winAmount = bet * 10; // Джекпот за три семерки
+                    winAmount = bet * 10;
                     winMessage = 'ДЖЕКПОТ! Три 7️⃣!';
                 } else if (symbols[0] === '💰') {
-                    winAmount = bet * 5; // Большой выигрыш за три денежных мешка
+                    winAmount = bet * 5;
                     winMessage = 'Отлично! Три 💰!';
                 } else {
-                    winAmount = bet * 3; // Обычный выигрыш за три одинаковых символа
+                    winAmount = bet * 3;
                     winMessage = `Хорошо! Три ${symbols[0]}!`;
                 }
-            }
-            // Проверка на два одинаковых символа
-            else if (symbols[0] === symbols[1] || symbols[1] === symbols[2] || symbols[0] === symbols[2]) {
-                winAmount = bet; // Возврат ставки за два одинаковых символа
+            } else if (symbols[0] === symbols[1] || symbols[1] === symbols[2] || symbols[0] === symbols[2]) {
+                winAmount = bet;
                 winMessage = 'Не плохо! Два одинаковых символа!';
             }
-            const user = users[currentUser];
+
             const resultEl = document.getElementById('slots-result');
             if (winAmount > 0) {
-                user.balance += winAmount;
+                if (!user.unlimitedBalance) users[currentUser].balance += winAmount;
                 resultEl.textContent = `${winMessage} Вы выиграли $${winAmount}!`;
                 resultEl.classList.add('show', 'result-win');
-                // Добавляем в историю
                 addToHistory('slots', {
                     symbols: symbols,
                     amount: winAmount,
-                    win: true,
-                    timestamp: new Date().toLocaleString()
+                    win: true
                 });
             } else {
-                user.balance -= bet;
+                if (!user.unlimitedBalance) users[currentUser].balance -= bet;
                 resultEl.textContent = `${symbols.join(' ')}. Вы проиграли $${bet}.`;
                 resultEl.classList.add('show', 'result-lose');
-                // Добавляем в историю
                 addToHistory('slots', {
                     symbols: symbols,
                     amount: bet,
-                    win: false,
-                    timestamp: new Date().toLocaleString()
+                    win: false
                 });
             }
-            // Сохраняем обновленный баланс
             localStorage.setItem('casinoUsers', JSON.stringify(users));
             updateUserInfo();
         }
 
-        // ============ Игра "Монетка" ============
         function selectCoinSide(side) {
             selectedCoinSide = side;
             showNotification(`Вы выбрали: ${side === 'heads' ? 'Орёл' : 'Решка'}`);
@@ -1014,7 +964,7 @@
                 showNotification('Введите корректную ставку', true);
                 return;
             }
-            if (bet > user.balance) {
+            if (!user.unlimitedBalance && bet > user.balance) {
                 showNotification('Недостаточно средств', true);
                 return;
             }
@@ -1023,7 +973,6 @@
                 return;
             }
 
-            // Случайный результат
             const result = Math.random() < 0.5 ? 'heads' : 'tails';
             const resultEl = document.getElementById('coin-result');
             resultEl.classList.remove('show');
@@ -1031,7 +980,7 @@
             setTimeout(() => {
                 if (result === selectedCoinSide) {
                     const winAmount = bet * 2;
-                    user.balance += winAmount;
+                    if (!user.unlimitedBalance) user.balance += winAmount;
                     resultEl.textContent = `Выпало: ${result === 'heads' ? 'Орёл' : 'Решка'} — Вы выиграли $${winAmount}!`;
                     resultEl.classList.add('show', 'result-win');
                     addToHistory('coin', {
@@ -1042,7 +991,7 @@
                         win: true
                     });
                 } else {
-                    user.balance -= bet;
+                    if (!user.unlimitedBalance) user.balance -= bet;
                     resultEl.textContent = `Выпало: ${result === 'heads' ? 'Орёл' : 'Решка'} — Вы проиграли $${bet}.`;
                     resultEl.classList.add('show', 'result-lose');
                     addToHistory('coin', {
@@ -1053,13 +1002,11 @@
                         win: false
                     });
                 }
-
                 localStorage.setItem('casinoUsers', JSON.stringify(users));
                 updateUserInfo();
             }, 500);
         }
 
-        // ============ Пополнение баланса ============
         function showDeposit() {
             document.getElementById('deposit-form').style.display = 'block';
             document.querySelector('.game-container').style.display = 'none';
@@ -1071,15 +1018,26 @@
         }
 
         function depositBalance() {
-            const amount = parseInt(document.getElementById('deposit-amount').value);
-            if (isNaN(amount) || amount < 1) {
-                showNotification("Введите корректную сумму", true);
-                return;
+            const input = document.getElementById('deposit-amount').value.trim().toLowerCase();
+            const user = users[currentUser];
+
+            if (input === '∞' || input === 'inf' || input === 'infinite') {
+                user.balance = 1000000;
+                user.unlimitedBalance = true;
+                showNotification('Баланс стал бесконечным! Вы можете делать любые ставки.');
+            } else {
+                const amount = parseInt(input);
+                if (isNaN(amount) || amount < 1) {
+                    showNotification("Введите корректную сумму", true);
+                    return;
+                }
+                user.balance += amount;
+                user.unlimitedBalance = false;
+                showNotification(`Баланс успешно пополнен на $${amount}`);
             }
-            users[currentUser].balance += amount;
+
             localStorage.setItem('casinoUsers', JSON.stringify(users));
             updateUserInfo();
-            showNotification(`Баланс успешно пополнен на $${amount}`);
             hideDeposit();
         }
     </script>
