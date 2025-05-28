@@ -1,225 +1,283 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <title>Казино - Блэкджек</title>
+  <meta charset="UTF-8">
+  <title>Мини Казино</title>
   <style>
     body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #1a1a1a, #333);
+      font-family: Arial, sans-serif;
+      background-color: #1e1e2f;
       color: white;
       text-align: center;
       padding: 20px;
     }
-
-    h1, h2 {
-      margin-bottom: 10px;
+    h1 {
+      color: gold;
     }
-
-    .container {
-      max-width: 500px;
-      margin: auto;
-      background: #222;
+    .game {
+      margin: 20px auto;
+      border: 2px solid #ccc;
+      padding: 15px;
+      max-width: 400px;
       border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 0 10px #0f0;
+      background-color: #2c2c3e;
     }
-
-    input, button {
-      padding: 10px;
+    input[type=number] {
+      width: 60px;
+      padding: 5px;
       margin: 5px;
-      width: calc(100% - 22px);
-      border-radius: 5px;
-      border: none;
-      font-size: 16px;
     }
-
     button {
-      background-color: #0f0;
-      color: black;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #0c0;
-    }
-
-    #gameArea {
-      margin-top: 20px;
-      font-size: 20px;
-    }
-
-    .card {
-      display: inline-block;
-      background: white;
-      color: black;
-      padding: 20px;
-      border-radius: 8px;
-      margin: 10px;
-      font-weight: bold;
-      min-width: 60px;
-      transition: transform 0.3s ease;
-    }
-
-    .card.dealer {
-      background: red;
+      padding: 10px 20px;
+      background-color: #4caf50;
       color: white;
+      border: none;
+      cursor: pointer;
+      margin: 5px;
+      border-radius: 5px;
     }
-
-    .card.flip {
-      transform: rotateY(180deg);
+    button:hover {
+      background-color: #45a049;
     }
-
-    #adminPanel {
-      display: none;
-      margin-top: 20px;
+    .message {
+      margin-top: 10px;
+      font-weight: bold;
     }
-
-    #balance {
-      font-size: 24px;
-      color: lime;
+    .balance {
+      font-size: 1.2em;
+      margin-bottom: 20px;
+      color: #00ffcc;
     }
   </style>
 </head>
 <body>
 
-  <h1>🃏 Казино: Блэкджек</h1>
-  <div class="container" id="auth">
-    <input type="text" id="username" placeholder="Логин">
-    <input type="password" id="password" placeholder="Пароль">
-    <button onclick="login()">Войти</button>
-    <button onclick="register()">Зарегистрироваться</button>
-  </div>
+<h1>🎰 Мини Казино</h1>
+<div class="balance">Баланс: <span id="balance">100</span> монет</div>
 
-  <div class="container" id="game" style="display:none;">
-    <h2>Блэкджек</h2>
-    <p>Ваш баланс: $<span id="balance">0</span></p>
-    <button onclick="startGame()">Начать игру</button>
-    <div id="gameArea"></div>
-  </div>
+<!-- Игра: Кости -->
+<div class="game">
+  <h2>🎲 Кости</h2>
+  <p>Угадайте число от 1 до 6</p>
+  <input type="number" id="diceGuess" min="1" max="6" placeholder="Число">
+  <input type="number" id="diceBet" min="1" placeholder="Ставка">
+  <button onclick="playDice()">Играть</button>
+  <div class="message" id="diceResult"></div>
+</div>
 
-  <div class="container" id="adminPanel" style="display:none;">
-    <h2>🛠 Админ-панель</h2>
-    <input type="text" id="userToEdit" placeholder="Логин пользователя">
-    <input type="number" id="newBalance" placeholder="Новый баланс">
-    <button onclick="setBalance()">Установить баланс</button>
-  </div>
+<!-- Игра: Блэкджек -->
+<div class="game">
+  <h2>♠️ Блэкджек</h2>
+  <p>Ваш ход: берёте карту или останавливаетесь?</p>
+  <input type="number" id="bjBet" min="1" placeholder="Ставка">
+  <button onclick="startBlackjack()">Начать</button>
+  <button onclick="hitBlackjack()">Взять карту</button>
+  <button onclick="standBlackjack()">Пас</button>
+  <div class="message" id="bjResult"></div>
+</div>
 
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js ";
-    import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js ";
+<!-- Игра: Слоты -->
+<div class="game">
+  <h2>💎 Слоты</h2>
+  <p>Если символы совпадут — выигрыш!</p>
+  <input type="number" id="slotsBet" min="1" placeholder="Ставка">
+  <button onclick="playSlots()">Крутить</button>
+  <div class="message" id="slotsResult"></div>
+</div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBxfwUv-1hQq_wYPrQviHqrb49OVRUaRGU",
-      authDomain: "cazic-7f172.firebaseapp.com",
-      databaseURL: "https://cazic-7f172-default-rtdb.firebaseio.com ",
-      projectId: "cazic-7f172",
-      storageBucket: "cazic-7f172.firebasestorage.app",
-      messagingSenderId: "440121668783",
-      appId: "1:440121668783:web:9d48a2ed805cfa3161905a",
-      measurementId: "G-Y0XNWB0F4N"
-    };
+<!-- Игра: Орёл-Решка -->
+<div class="game">
+  <h2>🪙 Орёл или решка?</h2>
+  <select id="coinChoice">
+    <option value="heads">Орёл</option>
+    <option value="tails">Решка</option>
+  </select>
+  <input type="number" id="coinBet" min="1" placeholder="Ставка">
+  <button onclick="flipCoin()">Подбросить</button>
+  <div class="message" id="coinResult"></div>
+</div>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+<!-- Игра: Угадай число -->
+<div class="game">
+  <h2>🔢 Угадай число (от 1 до 10)</h2>
+  <input type="number" id="guessNumber" min="1" max="10" placeholder="Число">
+  <input type="number" id="guessBet" min="1" placeholder="Ставка">
+  <button onclick="guessNumberGame()">Играть</button>
+  <div class="message" id="guessResult"></div>
+</div>
 
-    let currentUser = null;
+<script>
+  let balance = parseInt(localStorage.getItem('balance')) || 100;
 
-    async function register() {
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value.trim();
+  function updateBalance() {
+    document.getElementById("balance").innerText = balance;
+    localStorage.setItem('balance', balance);
+  }
 
-      if (!username || !password) return alert("Введите логин и пароль");
+  function playDice() {
+    const guess = parseInt(document.getElementById("diceGuess").value);
+    const bet = parseInt(document.getElementById("diceBet").value);
+    if (!validateBet(bet)) return;
 
-      const userRef = ref(db, 'users/' + username);
-      const snapshot = await get(userRef);
+    const roll = Math.floor(Math.random() * 6) + 1;
+    const resultDiv = document.getElementById("diceResult");
 
-      if (snapshot.exists()) {
-        alert("Пользователь уже существует");
-      } else {
-        await set(userRef, { password, balance: 1000 });
-        alert("Регистрация успешна!");
-      }
+    if (guess === roll) {
+      balance += bet * 5;
+      resultDiv.innerHTML = `🎉 Вы угадали! Выпало ${roll}. Вы выиграли ${bet * 5} монет.`;
+    } else {
+      balance -= bet;
+      resultDiv.innerHTML = `❌ Не угадали. Выпало ${roll}. Вы потеряли ${bet} монет.`;
+    }
+    updateBalance();
+  }
+
+  function startBlackjack() {
+    bjPlayer = [];
+    bjDealer = [];
+    bjDeck = Array.from({length: 10}, (_, i) => i + 1);
+    bjDeck.push(10, 10, 10); // валет, дама, король как 10
+    shuffleDeck();
+
+    bjPlayer.push(drawCard(), drawCard());
+    bjDealer.push(drawCard());
+
+    document.getElementById("bjResult").innerHTML = `
+      Ваши карты: ${bjPlayer.join(', ')} (сумма: ${sumCards(bjPlayer)})<br>
+      Карты дилера: ${bjDealer.join(', ')} (?)`;
+  }
+
+  function hitBlackjack() {
+    if (!bjPlayer) return alert("Сначала начните игру");
+    bjPlayer.push(drawCard());
+    const sum = sumCards(bjPlayer);
+    document.getElementById("bjResult").innerHTML = `
+      Ваши карты: ${bjPlayer.join(', ')} (сумма: ${sum})<br>
+      Карты дилера: ${bjDealer.join(', ')} (?)`;
+
+    if (sum > 21) {
+      endBlackjack(false);
+    }
+  }
+
+  function standBlackjack() {
+    while (sumCards(bjDealer) < 17) {
+      bjDealer.push(drawCard());
     }
 
-    async function login() {
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value.trim();
+    const playerSum = sumCards(bjPlayer);
+    const dealerSum = sumCards(bjDealer);
 
-      const userRef = ref(db, 'users/' + username);
-      const snapshot = await get(userRef);
-
-      if (snapshot.exists() && snapshot.val().password === password) {
-        currentUser = username;
-        document.getElementById("auth").style.display = "none";
-        document.getElementById("game").style.display = "block";
-        updateBalance();
-
-        if (username === "EsAzazel") {
-          document.getElementById("adminPanel").style.display = "block";
-        }
-      } else {
-        alert("Неверный логин или пароль");
-      }
+    let win = false;
+    if (dealerSum > 21 || playerSum > dealerSum) {
+      win = true;
     }
 
-    async function updateBalance() {
-      const userRef = ref(db, 'users/' + currentUser);
-      const snapshot = await get(userRef);
-      document.getElementById("balance").innerText = snapshot.val().balance;
+    endBlackjack(win, playerSum, dealerSum);
+  }
+
+  function endBlackjack(win, playerSum, dealerSum) {
+    const bet = parseInt(document.getElementById("bjBet").value);
+    if (!validateBet(bet)) return;
+
+    let msg = "";
+    if (win) {
+      balance += bet;
+      msg = `🎉 Победа! Вы набрали ${playerSum}, дилер — ${dealerSum}. Вы выиграли ${bet} монет.`;
+    } else {
+      balance -= bet;
+      msg = `❌ Проигрыш. Вы набрали ${playerSum}, дилер — ${dealerSum}. Вы потеряли ${bet} монет.`;
     }
+    document.getElementById("bjResult").innerHTML = msg;
+    updateBalance();
+  }
 
-    async function setBalance() {
-      if (currentUser !== "EsAzazel") return alert("Только администратор может это делать.");
+  function playSlots() {
+    const bet = parseInt(document.getElementById("slotsBet").value);
+    if (!validateBet(bet)) return;
 
-      const user = document.getElementById("userToEdit").value.trim();
-      const newBalance = parseInt(document.getElementById("newBalance").value);
+    const symbols = ['🍒', '🍋', '🍉', '⭐', '💎'];
+    const s1 = symbols[Math.floor(Math.random() * symbols.length)];
+    const s2 = symbols[Math.floor(Math.random() * symbols.length)];
+    const s3 = symbols[Math.floor(Math.random() * symbols.length)];
 
-      if (!user || isNaN(newBalance)) return alert("Введите корректные данные");
+    const resultDiv = document.getElementById("slotsResult");
 
-      const userRef = ref(db, 'users/' + user);
-      await update(userRef, { balance: newBalance });
-      alert(`Баланс ${user} установлен на $${newBalance}`);
+    if (s1 === s2 && s2 === s3) {
+      balance += bet * 10;
+      resultDiv.innerHTML = `🎉 JACKPOT! ${s1} ${s2} ${s3}. Вы выиграли ${bet * 10} монет.`;
+    } else if (s1 === s2 || s2 === s3 || s1 === s3) {
+      balance += bet * 2;
+      resultDiv.innerHTML = `🙂 Совпадение! ${s1} ${s2} ${s3}. Вы выиграли ${bet * 2} монет.`;
+    } else {
+      balance -= bet;
+      resultDiv.innerHTML = `😢 Нет совпадений. ${s1} ${s2} ${s3}. Вы потеряли ${bet} монет.`;
     }
+    updateBalance();
+  }
 
-    function getRandomCard() {
-      return Math.floor(Math.random() * 11) + 1; // от 1 до 11
+  function flipCoin() {
+    const choice = document.getElementById("coinChoice").value;
+    const bet = parseInt(document.getElementById("coinBet").value);
+    if (!validateBet(bet)) return;
+
+    const result = Math.random() < 0.5 ? "heads" : "tails";
+    const resultDiv = document.getElementById("coinResult");
+
+    if (result === choice) {
+      balance += bet;
+      resultDiv.innerHTML = `🎉 Вы угадали! Это был "${result}". Вы выиграли ${bet} монет.`;
+    } else {
+      balance -= bet;
+      resultDiv.innerHTML = `❌ Не угадали. Это был "${result}". Вы потеряли ${bet} монет.`;
     }
+    updateBalance();
+  }
 
-    async function changeBalance(amount) {
-      const userRef = ref(db, 'users/' + currentUser);
-      const snapshot = await get(userRef);
-      const current = snapshot.val().balance;
-      await update(userRef, { balance: current + amount });
-      updateBalance();
+  function guessNumberGame() {
+    const guess = parseInt(document.getElementById("guessNumber").value);
+    const bet = parseInt(document.getElementById("guessBet").value);
+    if (!validateBet(bet)) return;
+
+    const number = Math.floor(Math.random() * 10) + 1;
+    const resultDiv = document.getElementById("guessResult");
+
+    if (guess === number) {
+      balance += bet * 5;
+      resultDiv.innerHTML = `🎉 Вы угадали! Загаданное число: ${number}. Вы выиграли ${bet * 5} монет.`;
+    } else {
+      balance -= bet;
+      resultDiv.innerHTML = `❌ Не угадали. Загаданное число: ${number}. Вы потеряли ${bet} монет.`;
     }
+    updateBalance();
+  }
 
-    function startGame() {
-      const playerCard = getRandomCard();
-      const dealerCard = getRandomCard();
-
-      let resultText = "";
-      if (playerCard > dealerCard) {
-        resultText = "Вы выиграли!";
-        changeBalance(100);
-      } else if (playerCard < dealerCard) {
-        resultText = "Вы проиграли.";
-        changeBalance(-100);
-      } else {
-        resultText = "Ничья.";
-      }
-
-      document.getElementById("gameArea").innerHTML = `
-        <div class="card">${playerCard}</div>
-        <div class="card dealer">${dealerCard}</div><br>
-        <strong>${resultText}</strong><br>
-        Новый баланс: $<span id="balance">${document.getElementById("balance").innerText}</span>
-      `;
+  // Вспомогательные функции
+  function validateBet(bet) {
+    if (isNaN(bet) || bet <= 0 || bet > balance) {
+      alert("Введите корректную ставку!");
+      return false;
     }
-  </script>
+    return true;
+  }
+
+  function shuffleDeck() {
+    for (let i = bjDeck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [bjDeck[i], bjDeck[j]] = [bjDeck[j], bjDeck[i]];
+    }
+  }
+
+  function drawCard() {
+    return bjDeck.pop();
+  }
+
+  function sumCards(arr) {
+    return arr.reduce((a, b) => a + b, 0);
+  }
+
+  updateBalance();
+</script>
 
 </body>
 </html>
