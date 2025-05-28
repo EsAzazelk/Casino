@@ -2,459 +2,322 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Lucky Casino</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat :wght@400;700&family=Playfair+Display:wght@700&display=swap"
-        rel="stylesheet">
   <style>
-    <!-- ВСТАВЬ СЮДА ТВОИ СТИЛИ из твоего файла -->
-    <!-- Чтобы не перегружать — предположим, что ты их уже добавил -->
+    body {
+      font-family: Arial;
+      background: #1e1e2f;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    .game {
+      margin-bottom: 40px;
+    }
+    input[type="number"] {
+      width: 80px;
+      padding: 5px;
+      border-radius: 5px;
+      border: none;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .btn-green { background: green; color: white; }
+    .btn-red { background: red; color: white; }
+    .btn-blue { background: blue; color: white; }
+    .history {
+      margin-top: 20px;
+      max-height: 150px;
+      overflow-y: auto;
+    }
   </style>
 </head>
 <body>
-<div id="app">
-  <div class="casino-header">
-    <h1>LUCKY CASINO</h1>
+  <h1>🎰 Lucky Casino</h1>
+
+  <!-- Пользователь -->
+  <div id="user-info">
+    <input type="text" id="username" placeholder="Имя пользователя" />
+    <input type="password" id="password" placeholder="Пароль" />
+    <button onclick="login()">Войти</button>
+    <button onclick="register()">Регистрация</button>
+    <p id="balance"></p>
   </div>
 
-  <!-- Формы входа и регистрации -->
-  <div id="auth-forms">
-    <div class="form-container" id="login-form">
-      <h2>Вход</h2>
-      <div class="input-group">
-        <label for="login-username">Email</label>
-        <input type="email" id="login-username" placeholder="Введите email">
-      </div>
-      <div class="input-group">
-        <label for="login-password">Пароль</label>
-        <input type="password" id="login-password" placeholder="Введите пароль">
-      </div>
-      <button class="btn-primary" onclick="login()">Войти</button>
-      <p class="form-link" onclick="showRegister()">Нет аккаунта? Зарегистрируйтесь</p>
+  <!-- Игры -->
+  <div class="game" id="dice-game">
+    <h2>🎲 Кости</h2>
+    <p>Выберите число от 1 до 6:</p>
+    <div style="margin: 10px;">
+      <button onclick="selectDice(1)">1</button>
+      <button onclick="selectDice(2)">2</button>
+      <button onclick="selectDice(3)">3</button>
+      <button onclick="selectDice(4)">4</button>
+      <button onclick="selectDice(5)">5</button>
+      <button onclick="selectDice(6)">6</button>
     </div>
-
-    <div class="form-container" id="register-form" style="display: none;">
-      <h2>Регистрация</h2>
-      <div class="input-group">
-        <label for="register-username">Email</label>
-        <input type="email" id="register-username" placeholder="Введите email">
-      </div>
-      <div class="input-group">
-        <label for="register-password">Пароль</label>
-        <input type="password" id="register-password" placeholder="Введите пароль">
-      </div>
-      <button class="btn-primary" onclick="register()">Зарегистрироваться</button>
-      <p class="form-link" onclick="showLogin()">Уже есть аккаунт? Войдите</p>
-    </div>
+    <input type="number" id="dice-bet" value="10" />
+    <button class="btn-green" onclick="playDice()">Крутить</button>
+    <p id="dice-result"></p>
+    <div class="history" id="dice-history"></div>
   </div>
 
-  <!-- Основной интерфейс казино -->
-  <div id="casino" style="display: none;">
-    <div class="user-info">
-      <div class="balance">
-        <span>Баланс:</span>
-        <span class="balance-amount">$<span id="balance">0</span></span>
-      </div>
-      <div>
-        <span class="username" id="username-display"></span>
-        <button class="btn-danger" onclick="logout()">Выйти</button>
-        <button id="admin-button" class="btn-secondary" style="margin-left: 10px; display: none;"
-                onclick="toggleAdminPanel()">Админ-панель</button>
-      </div>
-    </div>
-
-    <div class="game-tabs">
-      <div class="game-tab active" onclick="switchGame('dice')">Кости</div>
-      <div class="game-tab" onclick="switchGame('slots')">Слоты</div>
-    </div>
-
-    <div id="admin-panel">
-      <h2>Админ-панель</h2>
-      <div id="users-list"></div>
-    </div>
-
-    <div class="game-container">
-      <!-- Dice Game -->
-      <div class="game active" id="dice-game">
-        <h2 class="game-title">Игра в Кости</h2>
-        <div class="dice-container">
-          <p>Выберите число:</p>
-          <div class="dice-number-selector">
-            <div class="dice-number" onclick="selectDiceNumber(1)">1</div>
-            <div class="dice-number" onclick="selectDiceNumber(2)">2</div>
-            <div class="dice-number" onclick="selectDiceNumber(3)">3</div>
-            <div class="dice-number" onclick="selectDiceNumber(4)">4</div>
-            <div class="dice-number" onclick="selectDiceNumber(5)">5</div>
-            <div class="dice-number" onclick="selectDiceNumber(6)">6</div>
-          </div>
-          <div class="dice-roll" id="dice-roll">?</div>
-          <button class="btn-primary" onclick="playDice()">Крутить</button>
-          <div class="game-result" id="dice-result"></div>
-        </div>
-        <div class="history-container" id="dice-history"></div>
-      </div>
-
-      <!-- Slots Game -->
-      <div class="game" id="slots-game">
-        <h2 class="game-title">Слоты</h2>
-        <div class="slots-machine">
-          <div class="slots-reels" id="slots-reels">
-            <div class="slots-reel" id="reel1"><div class="slots-symbol">🍒</div></div>
-            <div class="slots-reel" id="reel2"><div class="slots-symbol">🍋</div></div>
-            <div class="slots-reel" id="reel3"><div class="slots-symbol">🍊</div></div>
-          </div>
-          <button class="btn-primary" onclick="playSlots()">Крутить</button>
-        </div>
-        <div class="game-result" id="slots-result"></div>
-        <div class="history-container" id="slots-history"></div>
-      </div>
-    </div>
+  <div class="game" id="slots-game">
+    <h2>🎰 Слоты</h2>
+    <div id="slots-display" style="font-size: 2em; margin: 10px;"></div>
+    <input type="number" id="slots-bet" value="10" />
+    <button class="btn-green" onclick="playSlots()">Крутить</button>
+    <p id="slots-result"></p>
+    <div class="history" id="slots-history"></div>
   </div>
-</div>
 
-<!-- Notification -->
-<div class="notification" id="notification"></div>
+  <div class="game" id="blackjack-game">
+    <h2>🃏 Блэкджек</h2>
+    <input type="number" id="bj-bet" value="10" />
+    <button class="btn-green" onclick="startBlackjack()">Начать</button>
+    <p>Ваши карты: <span id="player-cards"></span> = <span id="player-score"></span></p>
+    <p>Дилер: <span id="dealer-cards"></span> = <span id="dealer-score"></span></p>
+    <button class="btn-blue" onclick="hit()">Hit</button>
+    <button class="btn-red" onclick="stand()">Stand</button>
+    <p id="bj-result"></p>
+    <div class="history" id="bj-history"></div>
+  </div>
 
-<script type="module">
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js ';
-  import {
-    getAuth,
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    signOut,
-    onAuthStateChanged
-  } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js ';
-  import {
-    getDatabase,
-    ref,
-    get,
-    set,
-    update,
-    remove,
-    onValue
-  } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js ';
+  <!-- Уведомления -->
+  <div id="notification" style="color: yellow; margin-top: 20px;"></div>
 
-  // Конфиг Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyBxfwUv-1hQq_wYPrQviHqrb49OVRUaRGU",
-    authDomain: "cazic-7f172.firebaseapp.com",
-    projectId: "cazic-7f172",
-    storageBucket: "cazic-7f172.firebasestorage.app",
-    messagingSenderId: "440121668783",
-    appId: "1:440121668783:web:9d48a2ed805cfa3161905a"
-  };
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js "></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js "></script>
+  <script>
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBxfwUv-1hQq_wYPrQviHqrb49OVRUaRGU",
+      authDomain: "cazic-7f172.firebaseapp.com",
+      projectId: "cazic-7f172",
+      databaseURL: "https://cazic-7f172.firebaseio.com ",
+      storageBucket: "cazic-7f172.firebasestorage.app",
+      messagingSenderId: "440121668783",
+      appId: "1:440121668783:web:9d48a2ed805cfa3161905a"
+    };
 
-  // Инициализация Firebase
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getDatabase(app);
+    // Firebase Init
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    let currentUser = null;
+    let selectedNumber = 3;
 
-  let currentUserData = null;
-  let selectedDiceNumber = 3;
-  let gameHistory = {};
-
-  window.onload = function () {
-    showLogin();
-    setupDiceNumbers();
-
-    // Подписываемся на историю игр
-    onValue(ref(db, 'gameHistory'), snapshot => {
-      gameHistory = snapshot.val() || {};
-    });
-  };
-
-  function showNotification(message, isError = false) {
-    const notification = document.getElementById('notification');
-    notification.textContent = message;
-    notification.className = 'notification show';
-    if (isError) notification.classList.add('error');
-    setTimeout(() => notification.classList.remove('show'), 3000);
-  }
-
-  function showRegister() {
-    document.getElementById('login-form').style.display = 'none';
-    document.getElementById('register-form').style.display = 'block';
-  }
-
-  function showLogin() {
-    document.getElementById('register-form').style.display = 'none';
-    document.getElementById('login-form').style.display = 'block';
-  }
-
-  function register() {
-    const email = document.getElementById('register-username').value.trim();
-    const password = document.getElementById('register-password').value;
-
-    if (!email.includes('@')) {
-      showNotification("Введите корректный email", true);
-      return;
-    }
-    if (password.length < 6) {
-      showNotification("Пароль должен быть не менее 6 символов", true);
-      return;
+    function showNotification(message) {
+      const notif = document.getElementById('notification');
+      notif.innerText = message;
+      setTimeout(() => notif.innerText = '', 3000);
     }
 
-    createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        const user = userCredential.user;
-        set(ref(db, 'users/' + user.uid), {
-          email: user.email,
-          balance: 1000
+    function login() {
+      const username = document.getElementById('username').value.trim();
+      if (!username) return alert("Введите имя");
+      db.ref('users/' + username).once('value', snap => {
+        if (snap.exists()) {
+          currentUser = username;
+          updateBalanceDisplay();
+          loadHistory();
+        } else {
+          alert("Пользователь не найден");
+        }
+      });
+    }
+
+    function register() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      if (!username || !password) return alert("Введите имя и пароль");
+
+      db.ref('users/' + username).once('value', snap => {
+        if (snap.exists()) {
+          alert("Пользователь уже существует");
+        } else {
+          db.ref('users/' + username).set({
+            password,
+            balance: 1000
+          });
+          currentUser = username;
+          updateBalanceDisplay();
+          loadHistory();
+        }
+      });
+    }
+
+    function updateBalanceDisplay() {
+      db.ref('users/' + currentUser).on('value', snap => {
+        const data = snap.val();
+        document.getElementById('balance').innerText = `Баланс: $${data.balance}`;
+      });
+    }
+
+    function loadHistory() {
+      db.ref('history/' + currentUser).on('value', snap => {
+        const history = snap.val() || {};
+        ['dice', 'slots', 'blackjack'].forEach(game => {
+          const container = document.getElementById(game + '-history');
+          container.innerHTML = '';
+          if (history[game]) {
+            history[game].slice(-5).reverse().forEach(entry => {
+              const div = document.createElement('div');
+              div.textContent = entry.text;
+              container.appendChild(div);
+            });
+          }
         });
-        showNotification("Регистрация успешна!");
-        showLogin();
-      })
-      .catch((error) => {
-        console.error(error);
-        showNotification("Ошибка регистрации", true);
       });
-  }
+    }
 
-  function login() {
-    const email = document.getElementById('login-username').value.trim();
-    const password = document.getElementById('login-password').value;
+    function addToHistory(game, text) {
+      db.ref('history/' + currentUser + '/' + game).push({ text });
+    }
 
-    signInWithEmailAndPassword(auth, email, password)
-      .catch((error) => {
-        console.error(error);
-        showNotification("Неверный логин или пароль", true);
+    // Игра: Кости
+    function selectDice(number) {
+      selectedNumber = number;
+    }
+
+    function playDice() {
+      const bet = parseInt(document.getElementById('dice-bet').value);
+      db.ref('users/' + currentUser).once('value', snap => {
+        const user = snap.val();
+        if (bet > user.balance || bet <= 0) return alert("Недостаточно средств");
+        const roll = Math.floor(Math.random() * 6) + 1;
+        let resultText = '';
+        let winAmount = 0;
+        if (roll === selectedNumber) {
+          winAmount = bet * 5;
+          resultText = `Вы угадали! Выпало ${roll}. Выиграли $${winAmount}`;
+        } else {
+          winAmount = -bet;
+          resultText = `Не угадали. Выпало ${roll}. Проиграли $${bet}`;
+        }
+        db.ref('users/' + currentUser).update({ balance: user.balance + winAmount });
+        addToHistory('dice', resultText);
+        document.getElementById('dice-result').textContent = resultText;
       });
-  }
-
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      const userRef = ref(db, 'users/' + user.uid);
-      const snapshot = await get(userRef);
-      currentUserData = snapshot.val();
-
-      document.getElementById('auth-forms').style.display = 'none';
-      document.getElementById('casino').style.display = 'block';
-      updateUserInfo();
-      loadGameHistory();
-      showNotification(`Добро пожаловать, ${currentUserData.email}!`);
-    } else {
-      document.getElementById('casino').style.display = 'none';
-      document.getElementById('auth-forms').style.display = 'block';
-      showLogin();
-    }
-  });
-
-  function updateUserInfo() {
-    if (!currentUserData) return;
-    document.getElementById('username-display').textContent = currentUserData.email;
-    document.getElementById('balance').textContent = currentUserData.balance;
-  }
-
-  function logout() {
-    signOut(auth).catch((error) => {
-      console.error("Ошибка выхода:", error);
-    });
-  }
-
-  function switchGame(game) {
-    document.querySelectorAll('.game').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.game-tab').forEach(el => el.classList.remove('active'));
-    document.getElementById(`${game}-game`).classList.add('active');
-    const tabs = document.querySelectorAll('.game-tab');
-    for (let tab of tabs) {
-      if (tab.textContent.toLowerCase().includes(game)) {
-        tab.classList.add('active');
-        break;
-      }
-    }
-  }
-
-  function setupDiceNumbers() {
-    selectDiceNumber(3);
-  }
-
-  function selectDiceNumber(number) {
-    selectedDiceNumber = number;
-    document.querySelectorAll('.dice-number').forEach(el => {
-      el.classList.remove('selected');
-      if (parseInt(el.textContent) === number) {
-        el.classList.add('selected');
-      }
-    });
-  }
-
-  function playDice() {
-    if (!auth.currentUser || !currentUserData) return;
-    const bet = 10;
-    if (bet > currentUserData.balance) {
-      showNotification('Недостаточно средств', true);
-      return;
     }
 
-    const diceRollEl = document.getElementById('dice-roll');
-    diceRollEl.textContent = '?';
-    diceRollEl.classList.add('dice-rolling');
+    // Игра: Слоты
+    const symbols = ['🍒', '🍋', '🍊', '🍇', '🍉', '7️⃣'];
+    function playSlots() {
+      const bet = parseInt(document.getElementById('slots-bet').value);
+      db.ref('users/' + currentUser).once('value', snap => {
+        const user = snap.val();
+        if (bet > user.balance || bet <= 0) return alert("Недостаточно средств");
 
-    const resultEl = document.getElementById('dice-result');
-    resultEl.classList.remove('show');
+        const s1 = symbols[Math.floor(Math.random() * symbols.length)];
+        const s2 = symbols[Math.floor(Math.random() * symbols.length)];
+        const s3 = symbols[Math.floor(Math.random() * symbols.length)];
 
-    setTimeout(async () => {
-      const diceRoll = Math.floor(Math.random() * 6) + 1;
-      diceRollEl.classList.remove('dice-rolling');
-      diceRollEl.textContent = diceRoll;
+        document.getElementById('slots-display').innerHTML = `${s1} | ${s2} | ${s3}`;
 
-      if (diceRoll === selectedDiceNumber) {
-        const winAmount = bet * 5;
-        currentUserData.balance += winAmount;
-        resultEl.textContent = `Выпало: ${diceRoll}. Вы угадали и выиграли $${winAmount}!`;
-        resultEl.classList.add('show', 'result-win');
-      } else {
-        currentUserData.balance -= bet;
-        resultEl.textContent = `Выпало: ${diceRoll}. Вы не угадали и потеряли $${bet}.`;
-        resultEl.classList.add('show', 'result-lose');
-      }
+        let resultText = '';
+        let winAmount = 0;
 
-      await update(ref(db, 'users/' + auth.currentUser.uid), {
-        balance: currentUserData.balance
+        if (s1 === s2 && s2 === s3) {
+          winAmount = bet * 5;
+          resultText = `Три одинаковых! Выиграли $${winAmount}`;
+        } else if (s1 === s2 || s2 === s3 || s1 === s3) {
+          winAmount = bet * 2;
+          resultText = `Два одинаковых! Выиграли $${winAmount}`;
+        } else {
+          winAmount = -bet;
+          resultText = `Проиграли $${bet}`;
+        }
+
+        db.ref('users/' + currentUser).update({ balance: user.balance + winAmount });
+        addToHistory('slots', resultText);
+        document.getElementById('slots-result').textContent = resultText;
       });
-
-      updateUserInfo();
-    }, 1000);
-  }
-
-  const slotSymbols = ['🍒', '🍋', '🍊', '🍇', '🍉', '7️⃣', '🔔', '💰'];
-
-  function setupSlots() {
-    const reels = document.querySelectorAll('.slots-reel');
-    reels.forEach(reel => {
-      reel.innerHTML = '';
-      for (let i = 0; i < 5; i++) {
-        const randomSymbol = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
-        const symbol = document.createElement('div');
-        symbol.className = 'slots-symbol';
-        symbol.textContent = randomSymbol;
-        symbol.style.transform = `translateY(${i * 120}px)`;
-        reel.appendChild(symbol);
-      }
-    });
-  }
-
-  function playSlots() {
-    if (!auth.currentUser || !currentUserData) return;
-    const bet = 10;
-    if (bet > currentUserData.balance) {
-      showNotification('Недостаточно средств', true);
-      return;
     }
 
-    const reels = document.querySelectorAll('.slots-reel');
-    reels.forEach(reel => reel.classList.add('slots-spinning'));
+    // Игра: Блэкджек
+    let playerCards = [];
+    let dealerCards = [];
 
-    const resultEl = document.getElementById('slots-result');
-    resultEl.classList.remove('show');
-    resultEl.className = 'game-result';
+    function getRandomCard() {
+      return Math.min(11, Math.floor(Math.random() * 11) + 1);
+    }
 
-    setTimeout(() => stopSlotReel(reels[0], 0), 1000);
-    setTimeout(() => stopSlotReel(reels[1], 1), 1500);
-    setTimeout(() => stopSlotReel(reels[2], 2), 2000);
-    setTimeout(() => checkSlotsResult(bet), 2500);
-  }
+    function calculateScore(cards) {
+      let score = cards.reduce((a, b) => a + b, 0);
+      while (score > 21 && cards.includes(11)) {
+        score -= 10;
+      }
+      return score;
+    }
 
-  function stopSlotReel(reel, index) {
-    reel.classList.remove('slots-spinning');
-    const randomSymbol = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
-    const symbols = reel.querySelectorAll('.slots-symbol');
-    symbols.forEach((symbol, i) => {
-      if (i === 2) {
-        symbol.textContent = randomSymbol;
+    function startBlackjack() {
+      playerCards = [getRandomCard(), getRandomCard()];
+      dealerCards = [getRandomCard(), getRandomCard()];
+      updateBJUI();
+    }
+
+    function hit() {
+      playerCards.push(getRandomCard());
+      updateBJUI();
+      const score = calculateScore(playerCards);
+      if (score > 21) {
+        endBJGame("Перебор! Вы проиграли.");
+      }
+    }
+
+    function stand() {
+      let dealerScore = calculateScore(dealerCards);
+      while (dealerScore < 17) {
+        dealerCards.push(getRandomCard());
+        dealerScore = calculateScore(dealerCards);
+      }
+      updateBJUI();
+
+      const playerScore = calculateScore(playerCards);
+      let result = '';
+
+      if (playerScore > 21) {
+        result = "Вы проиграли";
+      } else if (dealerScore > 21 || playerScore > dealerScore) {
+        result = "Вы выиграли!";
+      } else if (playerScore === dealerScore) {
+        result = "Ничья";
       } else {
-        symbol.textContent = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
+        result = "Вы проиграли";
       }
-      symbol.style.transform = `translateY(${(i - 2) * 120}px)`;
-    });
-  }
 
-  function checkSlotsResult(bet) {
-    const reels = document.querySelectorAll('.slots-reel');
-    const symbols = [];
-    reels.forEach(reel => {
-      const centerSymbol = reel.querySelectorAll('.slots-symbol')[2];
-      symbols.push(centerSymbol.textContent);
-    });
-
-    let winAmount = 0;
-    let winMessage = '';
-
-    if (symbols[0] === symbols[1] && symbols[1] === symbols[2]) {
-      if (symbols[0] === '7️⃣') {
-        winAmount = bet * 10;
-        winMessage = 'ДЖЕКПОТ! Три 7️⃣!';
-      } else if (symbols[0] === '💰') {
-        winAmount = bet * 5;
-        winMessage = 'Отлично! Три 💰!';
-      } else {
-        winAmount = bet * 3;
-        winMessage = `Хорошо! Три ${symbols[0]}!`;
-      }
-    } else if (symbols[0] === symbols[1] || symbols[1] === symbols[2] || symbols[0] === symbols[2]) {
-      winAmount = bet;
-      winMessage = 'Не плохо! Два одинаковых символа!';
+      endBJGame(result);
     }
 
-    const resultEl = document.getElementById('slots-result');
-
-    if (winAmount > 0) {
-      currentUserData.balance += winAmount;
-      resultEl.textContent = `${winMessage} Вы выиграли $${winAmount}!`;
-      resultEl.classList.add('show', 'result-win');
-    } else {
-      currentUserData.balance -= bet;
-      resultEl.textContent = `${symbols.join(' ')} — Вы проиграли $${bet}.`;
-      resultEl.classList.add('show', 'result-lose');
+    function updateBJUI() {
+      document.getElementById('player-cards').textContent = playerCards.join(', ');
+      document.getElementById('player-score').textContent = calculateScore(playerCards);
+      document.getElementById('dealer-cards').textContent = dealerCards.join(', ');
+      document.getElementById('dealer-score').textContent = calculateScore(dealerCards);
     }
 
-    update(ref(db, 'users/' + auth.currentUser.uid), { balance: currentUserData.balance });
-    updateUserInfo();
-  }
+    function endBJGame(result) {
+      const bet = parseInt(document.getElementById('bj-bet').value);
+      db.ref('users/' + currentUser).once('value', snap => {
+        const user = snap.val();
+        let amount = 0;
+        if (result.includes("выиграл")) amount = bet;
+        else if (result.includes("проиграл")) amount = -bet;
 
-  // Админ-панель
-  function toggleAdminPanel() {
-    const panel = document.getElementById('admin-panel');
-    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-  }
-
-  async function updateAdminPanel() {
-    const userListDiv = document.getElementById('users-list');
-    userListDiv.innerHTML = '';
-    const usersSnapshot = await get(ref(db, 'users'));
-    const users = usersSnapshot.val() || {};
-    Object.keys(users).forEach(uid => {
-      const user = users[uid];
-      const userDiv = document.createElement('div');
-      userDiv.className = 'admin-user-row';
-      userDiv.innerHTML = `
-        <span><strong>${user.email}</strong>: $${user.balance}</span>
-        <input type="number" id="balance-${uid}" value="${user.balance}" style="width: 100px;">
-        <button class="btn-primary" onclick="updateUserBalance('${uid}')">Обновить</button>
-        <button class="btn-danger" onclick="deleteUser('${uid}')">Удалить</button>
-      `;
-      userListDiv.appendChild(userDiv);
-    });
-  }
-
-  async function updateUserBalance(uid) {
-    const input = document.getElementById(`balance-${uid}`);
-    const newBalance = parseInt(input.value);
-    if (!isNaN(newBalance)) {
-      await update(ref(db, 'users/' + uid), { balance: newBalance });
-      showNotification(`Баланс ${uid} обновлён`);
-    } else {
-      showNotification('Введите корректное число', true);
+        db.ref('users/' + currentUser).update({ balance: user.balance + amount });
+        addToHistory('blackjack', `Блэкджек: ${result}. Ставка: $${bet}`);
+        document.getElementById('bj-result').textContent = result;
+      });
     }
-  }
-
-  async function deleteUser(uid) {
-    if (!confirm(`Вы уверены, что хотите удалить аккаунт?`)) return;
-    await remove(ref(db, 'users/' + uid));
-    await remove(ref(db, 'gameHistory/' + uid));
-    showNotification(`Аккаунт удален`);
-  }
-
-</script>
+  </script>
 </body>
 </html>
