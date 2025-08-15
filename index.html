@@ -3,166 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Clicker</title>
+    <title>Firebase Чат</title>
     <style>
-        /* Общие стили */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #1a1a2e;
-            color: #fff;
-            margin: 0;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        
-        /* Стили игры */
-        #game-section {
-            background: #16213e;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        
-        #auth-section input {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: none;
-            border-radius: 5px;
-            background: #0f3460;
-            color: white;
-        }
-        
-        button {
-            background: #e94560;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            margin: 5px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        
-        button:hover {
-            background: #ff6b81;
-        }
-        
-        .upgrade {
-            background: #533483;
-        }
-        
-        /* Стили админки */
-        #admin-section {
-            background: #1f1f3d;
-            padding: 20px;
-            border-radius: 10px;
-            display: none;
-        }
-        
-        .players-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .player-card {
-            background: #2a2a40;
-            padding: 15px;
-            border-radius: 8px;
-        }
-        
-        .player-actions {
-            display: flex;
-            gap: 5px;
-            margin-top: 10px;
-        }
-        
-        .player-actions input {
-            width: 60px;
-            padding: 5px;
-        }
-        
-        .error {
-            color: #ff6b81;
-            height: 20px;
-        }
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        input, button { padding: 10px; margin: 5px 0; width: 100%; }
+        #messages { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; margin: 20px 0; }
+        .message { margin: 5px 0; padding: 8px; background: #f0f0f0; border-radius: 4px; }
+        .auth-section, .chat-section { display: none; }
+        .active { display: block; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Игровой раздел -->
-        <div id="game-section">
-            <h1>🔥 Ultimate Clicker</h1>
-            
-            <div id="auth-section">
-                <h2>Вход в игру</h2>
-                <div id="auth-error" class="error"></div>
-                <input type="text" id="username" placeholder="Логин" required>
-                <input type="password" id="password" placeholder="Пароль" required>
-                <div class="auth-buttons">
-                    <button id="login-btn">Войти</button>
-                    <button id="register-btn">Регистрация</button>
-                    <button id="admin-login-btn" style="background: #ffcc00; color: #000;">Вход для админа</button>
-                </div>
-            </div>
-            
-            <div id="game-interface" style="display: none;">
-                <div class="user-info">
-                    <h2>Игрок: <span id="display-username"></span></h2>
-                    <button id="logout-btn">Выйти</button>
-                </div>
-                
-                <h2>Очки: <span id="score">0</span></h2>
-                <button id="click-btn">КЛИК!</button>
-                
-                <div class="upgrades">
-                    <button class="upgrade" onclick="buyUpgrade('click')">
-                        Улучшить (+1) | Цена: <span id="click-upgrade-cost">10</span>
-                    </button>
-                    <button class="upgrade" onclick="buyUpgrade('auto')">
-                        Автокликер | Цена: <span id="auto-upgrade-cost">15</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Админ-панель -->
-        <div id="admin-section">
-            <h1>👑 Админ-панель</h1>
-            <div class="control-panel">
-                <button id="refresh-admin-btn">Обновить</button>
-                <button id="global-boost-btn">Включить x2 доход (24ч)</button>
-                <button id="exit-admin-btn">Выйти из админки</button>
-            </div>
-            
-            <h2>Все игроки</h2>
-            <div id="players-list" class="players-grid"></div>
-            
-            <h2>Топ-10 игроков</h2>
-            <div id="top-players"></div>
-        </div>
+    <!-- Секция аутентификации -->
+    <div id="authSection" class="auth-section active">
+        <h2>Вход / Регистрация</h2>
+        <input id="nickname" placeholder="Ваш ник">
+        <input id="password" type="password" placeholder="Пароль">
+        <button id="loginBtn">Войти</button>
+        <button id="registerBtn">Зарегистрироваться</button>
+        <p id="authError" style="color: red;"></p>
     </div>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        // Конфигурация Firebase (ЗАМЕНИТЕ НА СВОЮ!)
-        const firebaseConfig = {
-            apiKey: "AIzaSyCqvqj2JjGssV2qPYlYD7SosF5WHamFR8Y",
-            authDomain: "clicertop.firebaseapp.com",
-            projectId: "clicertop",
-            storageBucket: "clicertop.firebasestorage.app",
-            messagingSenderId: "471596068823",
-            appId: "1:471596068823:web:d3af56a21268cdcae5e592"
-        };
+    <!-- Секция чата -->
+    <div id="chatSection" class="chat-section">
+        <h2>Чат</h2>
+        <p>Вы вошли как: <span id="currentUser"></span></p>
+        <input id="receiverNickname" placeholder="Ник получателя">
+        <input id="messageInput" placeholder="Ваше сообщение">
+        <button id="sendBtn">Отправить</button>
+        <div id="messages"></div>
+        <button id="logoutBtn">Выйти</button>
+    </div>
 
-        // Импорт необходимых модулей Firebase
+    <!-- Firebase + Скрипт -->
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { 
             getAuth, 
@@ -172,356 +46,186 @@
             onAuthStateChanged
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { 
-            getFirestore,
-            doc,
-            setDoc,
-            getDoc,
-            collection,
-            getDocs,
-            query,
-            orderBy,
-            limit,
-            updateDoc
+            getFirestore, 
+            collection, 
+            addDoc, 
+            query, 
+            where, 
+            onSnapshot,
+            serverTimestamp
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { 
-            getStorage,
-            ref,
-            uploadBytes,
-            getDownloadURL 
-        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+        // Твоя конфигурация Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCqvqj2JjGssV2qPYlYD7SosF5WHamFR8Y",
+            authDomain: "clicertop.firebaseapp.com",
+            projectId: "clicertop",
+            storageBucket: "clicertop.firebasestorage.app",
+            messagingSenderId: "471596068823",
+            appId: "1:471596068823:web:d3af56a21268cdcae5e592"
+        };
 
         // Инициализация Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const storage = getStorage(app);
 
-        // Данные игры
-        let gameData = {
-            score: 0,
-            clickPower: 1,
-            autoClickers: 0,
-            autoPower: 0,
-            clickUpgradeCost: 10,
-            autoUpgradeCost: 15
-        };
+        // Элементы DOM
+        const authSection = document.getElementById('authSection');
+        const chatSection = document.getElementById('chatSection');
+        const nicknameInput = document.getElementById('nickname');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        const authError = document.getElementById('authError');
+        const currentUserSpan = document.getElementById('currentUser');
+        const receiverNicknameInput = document.getElementById('receiverNickname');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const messagesDiv = document.getElementById('messages');
+        const logoutBtn = document.getElementById('logoutBtn');
 
-        let userId = null;
-        let isAdminMode = false;
-        let gameInterval = null;
+        // Показать/скрыть секции
+        function toggleSections(isAuth) {
+            authSection.classList.toggle('active', isAuth);
+            chatSection.classList.toggle('active', !isAuth);
+        }
 
-        // =====================
-        // ФУНКЦИИ ИГРЫ
-        // =====================
+        // Регистрация
+        registerBtn.addEventListener('click', async () => {
+            const nickname = nicknameInput.value.trim();
+            const password = passwordInput.value.trim();
 
-        // Регистрация нового пользователя
-        document.getElementById("register-btn").addEventListener("click", async () => {
-            const username = document.getElementById("username").value.trim();
-            const password = document.getElementById("password").value;
-            
-            if (!username || !password) {
-                showError("Введите логин и пароль");
+            if (!nickname || !password) {
+                authError.textContent = "Заполните все поля!";
                 return;
             }
-            
-            const email = `${username}@clickergame.com`;
-            
+
             try {
-                await createUserWithEmailAndPassword(auth, email, password);
-                await saveGame();
-                showError("Аккаунт создан!");
-            } catch (error) {
-                showError(error.message);
-            }
-        });
-
-        // Вход в игру
-        document.getElementById("login-btn").addEventListener("click", async () => {
-            const username = document.getElementById("username").value.trim();
-            const password = document.getElementById("password").value;
-            
-            if (!username || !password) {
-                showError("Введите логин и пароль");
-                return;
-            }
-            
-            const email = `${username}@clickergame.com`;
-            
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-            } catch (error) {
-                showError(error.message);
-            }
-        });
-
-        // Вход в админку
-        document.getElementById("admin-login-btn").addEventListener("click", async () => {
-            const username = document.getElementById("username").value.trim();
-            const password = document.getElementById("password").value;
-            
-            if (!username || !password) {
-                showError("Введите логин и пароль");
-                return;
-            }
-            
-            const email = `${username}@clickergame.com`;
-            
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-                const user = auth.currentUser;
-                
-                if (await isAdmin(user.uid)) {
-                    isAdminMode = true;
-                    document.getElementById("game-section").style.display = "none";
-                    document.getElementById("admin-section").style.display = "block";
-                    loadAdminData();
-                } else {
-                    showError("Недостаточно прав!");
-                    await signOut(auth);
-                }
-            } catch (error) {
-                showError(error.message);
-            }
-        });
-
-        // Выход из аккаунта
-        document.getElementById("logout-btn").addEventListener("click", () => {
-            signOut(auth);
-        });
-
-        document.getElementById("exit-admin-btn").addEventListener("click", () => {
-            signOut(auth);
-            isAdminMode = false;
-            document.getElementById("admin-section").style.display = "none";
-            document.getElementById("game-section").style.display = "block";
-        });
-
-        // Клик по основной кнопке
-        document.getElementById("click-btn").addEventListener("click", () => {
-            gameData.score += gameData.clickPower;
-            updateUI();
-            saveGame();
-        });
-
-        // Покупка улучшений
-        function buyUpgrade(type) {
-            if (type === 'click' && gameData.score >= gameData.clickUpgradeCost) {
-                gameData.score -= gameData.clickUpgradeCost;
-                gameData.clickPower++;
-                gameData.clickUpgradeCost = Math.floor(gameData.clickUpgradeCost * 1.5);
-            } else if (type === 'auto' && gameData.score >= gameData.autoUpgradeCost) {
-                gameData.score -= gameData.autoUpgradeCost;
-                gameData.autoClickers++;
-                gameData.autoPower = gameData.autoClickers * 0.5;
-                gameData.autoUpgradeCost = Math.floor(gameData.autoUpgradeCost * 1.8);
-            }
-            updateUI();
-            saveGame();
-        }
-
-        // =====================
-        // АДМИН-ФУНКЦИИ
-        // =====================
-
-        // Загрузка данных для админки
-        async function loadAdminData() {
-            await loadPlayers();
-            await loadTopPlayers();
-        }
-
-        // Загрузка списка игроков
-        async function loadPlayers() {
-            try {
-                const snapshot = await getDocs(collection(db, "saves"));
-                const playersList = document.getElementById("players-list");
-                playersList.innerHTML = "";
-                
-                snapshot.forEach(doc => {
-                    const player = doc.data();
-                    playersList.innerHTML += `
-                        <div class="player-card">
-                            <h3>${doc.id.split('@')[0]}</h3>
-                            <p>Очки: ${player.score || 0}</p>
-                            <div class="player-actions">
-                                <input type="number" id="edit-${doc.id}" value="${player.score || 0}">
-                                <button onclick="adminUpdateScore('${doc.id}')">💾 Сохранить</button>
-                                <button onclick="banUser('${doc.id}')">🔨 Забанить</button>
-                            </div>
-                        </div>
-                    `;
-                });
-            } catch (error) {
-                console.error("Ошибка загрузки игроков:", error);
-            }
-        }
-
-        // Обновление счета игрока
-        window.adminUpdateScore = async function(userId) {
-            const newScore = parseInt(document.getElementById(`edit-${userId}`).value);
-            if (isNaN(newScore)) return;
-            
-            try {
-                await updateDoc(doc(db, "saves", userId), { score: newScore });
-                alert("Счет обновлен!");
-            } catch (error) {
-                alert("Ошибка: " + error.message);
-            }
-        }
-
-        // Бан пользователя
-        window.banUser = async function(userId) {
-            if (confirm(`Забанить пользователя ${userId}?`)) {
-                try {
-                    await setDoc(doc(db, "banned", userId), { banned: true, date: new Date() });
-                    alert("Пользователь забанен!");
-                } catch (error) {
-                    alert("Ошибка: " + error.message);
-                }
-            }
-        }
-
-        // Загрузка топа игроков
-        async function loadTopPlayers() {
-            try {
-                const q = query(
-                    collection(db, "saves"), 
-                    orderBy("score", "desc"), 
-                    limit(10)
+                // Создаем пользователя с email в формате "ник@chat.com"
+                const userCredential = await createUserWithEmailAndPassword(
+                    auth, 
+                    `${nickname}@chat.com`, 
+                    password
                 );
                 
-                const snapshot = await getDocs(q);
-                let html = "<ol>";
-                
-                snapshot.forEach((doc, index) => {
-                    const username = doc.id.split('@')[0];
-                    html += `<li>${index + 1}. ${username}: ${doc.data().score} очков</li>`;
+                // Сохраняем ник в Firestore
+                await addDoc(collection(db, "users"), {
+                    uid: userCredential.user.uid,
+                    nickname: nickname
                 });
-                
-                html += "</ol>";
-                document.getElementById("top-players").innerHTML = html;
-            } catch (error) {
-                console.error("Ошибка загрузки топа:", error);
-            }
-        }
 
-        // Глобальный буст
-        document.getElementById("global-boost-btn").addEventListener("click", () => {
-            if (confirm("Активировать x2 доход для всех игроков на 24 часа?")) {
-                const expires = new Date();
-                expires.setDate(expires.getDate() + 1);
-                
-                setDoc(doc(db, "globals", "boost"), {
-                    multiplier: 2,
-                    expires: expires
-                }).then(() => {
-                    alert("Глобальный буст активирован!");
-                }).catch(error => {
-                    alert("Ошибка: " + error.message);
-                });
+                toggleSections(false);
+                currentUserSpan.textContent = nickname;
+            } catch (error) {
+                authError.textContent = `Ошибка: ${error.message}`;
             }
         });
 
-        // Обновление админ-данных
-        document.getElementById("refresh-admin-btn").addEventListener("click", loadAdminData);
+        // Вход
+        loginBtn.addEventListener('click', async () => {
+            const nickname = nicknameInput.value.trim();
+            const password = passwordInput.value.trim();
 
-        // =====================
-        // ОБЩИЕ ФУНКЦИИ
-        // =====================
-
-        // Проверка прав админа
-        async function isAdmin(uid) {
             try {
-                const docSnap = await getDoc(doc(db, "admins", uid));
-                return docSnap.exists();
+                await signInWithEmailAndPassword(
+                    auth, 
+                    `${nickname}@chat.com`, 
+                    password
+                );
+                
+                toggleSections(false);
+                currentUserSpan.textContent = nickname;
             } catch (error) {
-                console.error("Ошибка проверки админки:", error);
-                return false;
+                authError.textContent = `Ошибка: ${error.message}`;
             }
-        }
+        });
 
-        // Загрузка игры
-        async function loadGame() {
-            if (!userId) return;
-            
+        // Отправка сообщения
+        sendBtn.addEventListener('click', async () => {
+            const receiverNick = receiverNicknameInput.value.trim();
+            const text = messageInput.value.trim();
+
+            if (!receiverNick || !text) return;
+
             try {
-                const docSnap = await getDoc(doc(db, "saves", userId));
-                if (docSnap.exists()) {
-                    gameData = {
-                        score: docSnap.data().score || 0,
-                        clickPower: docSnap.data().clickPower || 1,
-                        autoClickers: docSnap.data().autoClickers || 0,
-                        autoPower: docSnap.data().autoPower || 0,
-                        clickUpgradeCost: docSnap.data().clickUpgradeCost || 10,
-                        autoUpgradeCost: docSnap.data().autoUpgradeCost || 15
-                    };
-                    console.log("Игра загружена");
+                // Находим получателя по нику
+                const usersQuery = query(
+                    collection(db, "users"), 
+                    where("nickname", "==", receiverNick)
+                );
+                
+                // В реальном приложении нужна пагинация (здесь берем первого)
+                const querySnapshot = await getDocs(usersQuery);
+                if (querySnapshot.empty) {
+                    alert("Пользователь не найден!");
+                    return;
                 }
+
+                const receiver = querySnapshot.docs[0].data();
+                
+                // Сохраняем сообщение
+                await addDoc(collection(db, "messages"), {
+                    from: auth.currentUser.uid,
+                    to: receiver.uid,
+                    text: text,
+                    timestamp: serverTimestamp()
+                });
+
+                messageInput.value = "";
             } catch (error) {
-                console.error("Ошибка загрузки:", error);
+                console.error("Ошибка отправки:", error);
             }
-            
-            updateUI();
-        }
+        });
 
-        // Сохранение игры
-        async function saveGame() {
-            if (!userId) return;
-            
-            try {
-                await setDoc(doc(db, "saves", userId), gameData);
-            } catch (error) {
-                console.error("Ошибка сохранения:", error);
-            }
-        }
+        // Выход
+        logoutBtn.addEventListener('click', () => {
+            signOut(auth);
+            toggleSections(true);
+        });
 
-        // Обновление интерфейса
-        function updateUI() {
-            document.getElementById("score").textContent = Math.floor(gameData.score);
-            document.getElementById("click-power").textContent = gameData.clickPower;
-            document.getElementById("auto-clickers").textContent = gameData.autoClickers;
-            document.getElementById("auto-power").textContent = gameData.autoPower;
-            document.getElementById("click-upgrade-cost").textContent = gameData.clickUpgradeCost;
-            document.getElementById("auto-upgrade-cost").textContent = gameData.autoUpgradeCost;
-        }
-
-        // Автокликер
-        function startGameLoop() {
-            if (gameInterval) clearInterval(gameInterval);
-            
-            gameInterval = setInterval(() => {
-                gameData.score += gameData.autoPower;
-                updateUI();
-                saveGame();
-            }, 1000);
-        }
-
-        // Обработчик изменения состояния авторизации
-        onAuthStateChanged(auth, async (user) => {
+        // Отслеживание состояния аутентификации
+        onAuthStateChanged(auth, (user) => {
             if (user) {
-                userId = user.email;
-                document.getElementById("auth-section").style.display = "none";
-                document.getElementById("game-interface").style.display = "block";
-                document.getElementById("display-username").textContent = user.email.split('@')[0];
+                // Подгружаем ник текущего пользователя
+                const userQuery = query(
+                    collection(db, "users"),
+                    where("uid", "==", user.uid)
+                );
                 
-                await loadGame();
-                startGameLoop();
-            } else {
-                userId = null;
-                document.getElementById("auth-section").style.display = "block";
-                document.getElementById("game-interface").style.display = "none";
+                onSnapshot(userQuery, (snapshot) => {
+                    if (!snapshot.empty) {
+                        const userData = snapshot.docs[0].data();
+                        currentUserSpan.textContent = userData.nickname;
+                    }
+                });
+
+                // Слушаем входящие сообщения
+                const messagesQuery = query(
+                    collection(db, "messages"),
+                    where("to", "==", user.uid)
+                );
                 
-                if (gameInterval) {
-                    clearInterval(gameInterval);
-                    gameInterval = null;
-                }
+                onSnapshot(messagesQuery, (snapshot) => {
+                    snapshot.docChanges().forEach(change => {
+                        if (change.type === "added") {
+                            const msg = change.doc.data();
+                            displayMessage(msg);
+                        }
+                    });
+                });
             }
         });
 
-        // Показать ошибку
-        function showError(message) {
-            const errorElement = document.getElementById("auth-error");
-            errorElement.textContent = message;
-            setTimeout(() => errorElement.textContent = "", 3000);
+        // Отображение сообщения
+        function displayMessage(msg) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            
+            // Здесь нужно подгрузить ник отправителя (для краткости просто выводим текст)
+            messageDiv.textContent = msg.text;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
     </script>
 </body>
